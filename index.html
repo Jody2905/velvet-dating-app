@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Velvet Dating Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Single-theme: candlelit wine room. Phone prototype left, safety pipeline + controls right. */
+  --bg:#150a0f;
+  --surface:#22111a;
+  --surface-2:#2e1823;
+  --line:#4a2634;
+  --ink:#f5e4e8;
+  --muted:#c39aa6;
+  --accent:#d63a5c;
+  --accent-soft:#8f2440;
+  --gold:#e0b07c;
+  --ok:#5cc79a;
+  --warn:#f0b54a;
+  --bad:#ff6b6b;
+  --display:"Cormorant Garamond", Georgia, "Times New Roman", serif;
+  --body:"DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:radial-gradient(1200px 600px at 20% -10%,#3a1022 0%,transparent 60%),var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+h1,h2,h3{text-wrap:balance;margin:0}
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 24px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.brand{font-family:var(--display);font-size:30px;font-style:italic;letter-spacing:.5px}
+.brand b{color:var(--accent);font-style:normal}
+.tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px}
+.tabs button{border:0;background:transparent;padding:8px 16px;border-radius:999px;cursor:pointer;color:var(--muted)}
+.tabs button[aria-selected="true"]{background:var(--accent);color:#fff}
+.badge-count{display:inline-block;min-width:20px;padding:0 6px;margin-left:6px;border-radius:999px;background:var(--warn);color:#2a1300;font-size:12px;font-weight:700}
+main{max-width:1180px;margin:0 auto;padding:24px 16px 48px}
+.view{display:none}.view.on{display:block}
+.app-layout{display:grid;grid-template-columns:390px 1fr;gap:32px;align-items:start}
+@media (max-width:900px){.app-layout{grid-template-columns:1fr}.phone{margin:0 auto}}
+
+/* phone */
+.phone{width:100%;max-width:390px;height:760px;background:var(--surface);border:1px solid var(--line);border-radius:36px;padding:14px;box-shadow:0 30px 80px -30px #000,0 0 0 6px #0d0609;position:relative}
+.screen{height:100%;border-radius:26px;background:linear-gradient(180deg,#1d0d15,#140810);overflow-y:auto;padding:22px 20px;display:flex;flex-direction:column;gap:14px}
+.notch{position:absolute;top:20px;left:50%;transform:translateX(-50%);width:96px;height:6px;border-radius:9px;background:#0d0609}
+.s-title{font-family:var(--display);font-size:32px;line-height:1.1}
+.s-title em{color:var(--accent)}
+.s-sub{color:var(--muted);font-size:14px}
+.stepper{display:flex;gap:6px;margin-top:8px}
+.stepper i{flex:1;height:3px;border-radius:3px;background:var(--line)}
+.stepper i.done{background:var(--accent)}
+label{display:block;font-size:13px;color:var(--muted);margin-bottom:4px}
+.field{display:flex;flex-direction:column}
+.field input{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:11px 12px}
+.btn{border:0;border-radius:999px;padding:13px 18px;background:var(--accent);color:#fff;font-weight:700;cursor:pointer;width:100%}
+.btn:hover{filter:brightness(1.08)}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink);font-weight:500}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.spacer{flex:1}
+.upload{border:1px dashed var(--accent-soft);border-radius:16px;padding:14px;display:flex;align-items:center;gap:12px;background:#ffffff05}
+.upload .ic{width:42px;height:42px;border-radius:12px;background:var(--surface-2);display:grid;place-items:center;flex:none}
+.upload .t{flex:1;font-size:14px}
+.upload .t small{display:block;color:var(--muted)}
+.upload.ok{border-style:solid;border-color:var(--ok)}
+.linkish{background:none;border:0;color:var(--gold);cursor:pointer;padding:0;font-size:13px;text-decoration:underline}
+.consent{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--muted);background:var(--surface-2);border-radius:12px;padding:12px}
+.consent input{margin-top:3px;accent-color:var(--accent)}
+.checks{display:flex;flex-direction:column;gap:8px}
+.check{display:flex;align-items:center;gap:10px;background:var(--surface-2);border-radius:12px;padding:10px 12px;font-size:14px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--line);flex:none}
+.check.run .dot{background:var(--gold);animation:pulse 1s infinite}
+.check.pass .dot{background:var(--ok)}
+.check.hold .dot{background:var(--warn)}
+.check .r{margin-left:auto;font-size:12px;color:var(--muted)}
+@keyframes pulse{50%{opacity:.3}}
+@media (prefers-reduced-motion:reduce){.check.run .dot{animation:none}*{transition:none!important}}
+.notice{border-radius:16px;padding:14px;background:var(--surface-2);border-left:4px solid var(--warn);font-size:14px}
+.notice.ok{border-left-color:var(--ok)}
+.card{border-radius:22px;overflow:hidden;background:var(--surface-2);border:1px solid var(--line)}
+.card .pic{height:300px;display:grid;place-items:center;font-family:var(--display);font-size:84px;color:#ffffffcc;position:relative}
+.card .pic .vb{position:absolute;left:12px;top:12px}
+.card .info{padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+.card .info h3{font-family:var(--display);font-size:26px}
+.chip{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:3px 9px;font-size:12px;font-weight:700;background:#0008;color:var(--ok);border:1px solid #5cc79a55}
+.chip.gold{color:var(--gold);border-color:#e0b07c55}
+.chip.warn{color:var(--warn);border-color:#f0b54a55}
+.chip.bad{color:var(--bad);border-color:#ff6b6b55}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+.tags span{font-size:12px;background:#ffffff0d;border-radius:999px;padding:3px 9px;color:var(--muted)}
+.actions{display:flex;gap:16px;justify-content:center}
+.round{width:62px;height:62px;border-radius:50%;border:1px solid var(--line);background:var(--surface-2);cursor:pointer;font-size:24px;display:grid;place-items:center}
+.round.like{background:var(--accent);border-color:var(--accent)}
+.chat{display:flex;flex-direction:column;gap:8px;flex:1}
+.msg{max-width:78%;padding:9px 13px;border-radius:16px;font-size:14px}
+.msg.them{background:var(--surface-2);align-self:flex-start;border-bottom-left-radius:4px}
+.msg.me{background:var(--accent-soft);align-self:flex-end;border-bottom-right-radius:4px}
+.msg.sys{align-self:center;background:transparent;color:var(--muted);font-size:12px;text-align:center;max-width:100%}
+.safetybar{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.safetybar button{border:1px solid var(--line);background:var(--surface-2);border-radius:12px;padding:8px 4px;font-size:12px;cursor:pointer}
+.row{display:flex;gap:10px;align-items:center}
+.sheet{background:var(--surface-2);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.sheet select,.sheet input{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px}
+
+/* side panel */
+.side{display:flex;flex-direction:column;gap:20px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:20px}
+.panel h2{font-family:var(--display);font-size:26px;margin-bottom:6px}
+.panel p{margin:0 0 12px;color:var(--muted);max-width:65ch}
+.scen{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+@media (max-width:500px){.scen{grid-template-columns:1fr}}
+.scen button{text-align:left;border:1px solid var(--line);background:var(--surface-2);border-radius:14px;padding:10px 12px;cursor:pointer}
+.scen button b{display:block;font-size:14px}
+.scen button span{font-size:12px;color:var(--muted)}
+.scen button[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.pipe{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;counter-reset:s}
+@media (max-width:640px){.pipe{grid-template-columns:1fr 1fr}}
+.pipe div{background:var(--surface-2);border-radius:14px;padding:12px;font-size:13px;color:var(--muted)}
+.pipe div b{display:block;color:var(--ink);font-size:14px;margin-bottom:2px}
+.pipe div::before{counter-increment:s;content:counter(s);display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--accent-soft);color:#fff;font-size:12px;font-weight:700;margin-bottom:6px}
+.log{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;background:#0d0609;border-radius:12px;padding:12px;max-height:260px;overflow:auto;display:flex;flex-direction:column;gap:4px}
+.log .t{color:var(--muted)}
+.log .ok{color:var(--ok)}.log .w{color:var(--warn)}.log .b{color:var(--bad)}
+.rule{display:flex;gap:10px;font-size:14px;align-items:flex-start}
+.rule b{color:var(--gold)}
+
+/* moderator */
+.mod-head{display:flex;justify-content:space-between;align-items:end;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+.mod-head h2{font-family:var(--display);font-size:34px}
+.mod-head p{margin:4px 0 0;color:var(--muted);max-width:65ch}
+.stats{display:flex;gap:10px;flex-wrap:wrap}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 14px;min-width:110px}
+.stat b{font-size:22px;display:block;font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--muted)}
+.queue{display:flex;flex-direction:column;gap:14px}
+.case{background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--warn);border-radius:18px;padding:18px;display:grid;grid-template-columns:1.1fr 1.4fr auto;gap:18px;align-items:start}
+.case.high{border-left-color:var(--bad)}
+.case.done{opacity:.6;border-left-color:var(--line)}
+@media (max-width:900px){.case{grid-template-columns:1fr}}
+.case h3{font-size:17px}
+.case .meta{font-size:13px;color:var(--muted)}
+table.cmp{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+table.cmp th,table.cmp td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+table.cmp th{color:var(--muted);font-weight:500}
+.y{color:var(--ok);font-weight:700}.n{color:var(--bad);font-weight:700}.p{color:var(--warn);font-weight:700}
+.case .btns{display:flex;flex-direction:column;gap:8px;min-width:190px}
+.case .btns .btn{padding:10px 14px;font-size:13px}
+.btn.okb{background:#2f7d5c}
+.verdict{font-size:13px;padding:10px;border-radius:12px;background:var(--surface-2)}
+.tablewrap{overflow-x:auto}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><b>V</b>elvet</div>
+  <nav class="tabs" role="tablist" aria-label="Views">
+    <button role="tab" id="tab-app" aria-selected="true" data-view="app">Member app</button>
+    <button role="tab" id="tab-mod" aria-selected="false" data-view="mod">Moderator queue<span class="badge-count" id="qcount">2</span></button>
+  </nav>
+</header>
+
+<main>
+<section class="view on" id="view-app" aria-labelledby="tab-app">
+  <div class="app-layout">
+    <div class="phone"><div class="notch"></div><div class="screen" id="screen"></div></div>
+
+    <div class="side">
+      <div class="panel">
+        <h2>Demo scenario</h2>
+        <p>Pick what the background check returns for the person signing up, then go through signup on the phone. All data here is fictional.</p>
+        <div class="scen" id="scen">
+          <button data-s="clear" aria-pressed="true"><b>All clear</b><span>No records found. Account goes live.</span></button>
+          <button data-s="registry"><b>Registry match</b><span>Name + DOB match a sex-offender registry entry.</span></button>
+          <button data-s="warrant"><b>Watchlist match</b><span>Name matches a public wanted notice; DOB differs.</span></button>
+          <button data-s="mismatch"><b>Selfie mismatch</b><span>Selfie doesn't match the ID photo.</span></button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Safety pipeline</h2>
+        <p>Checks run on a verified identity (legal name + date of birth from the ID), never on looks alone.</p>
+        <div class="pipe">
+          <div><b>Verify ID</b>Government ID scanned and validated.</div>
+          <div><b>Liveness</b>Live selfie matched to the ID photo.</div>
+          <div><b>Screen</b>Registries, records and watchlists, with consent.</div>
+          <div><b>Human review</b>Any hit is held for a trained moderator.</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Audit log</h2>
+        <p>What the backend recorded for this signup.</p>
+        <div class="log" id="log" aria-live="polite"><div class="t">Waiting for signup…</div></div>
+      </div>
+
+      <div class="panel">
+        <h2>Ground rules</h2>
+        <div class="checks">
+          <div class="rule"><b>1</b><span>A possible match never goes straight to other members. Nobody gets a "your match is a criminal" alert.</span></div>
+          <div class="rule"><b>2</b><span>Flagged accounts are hidden from discovery while a moderator reviews them.</span></div>
+          <div class="rule"><b>3</b><span>Confirmed matches are removed. False matches are cleared and the person is told nothing was found.</span></div>
+          <div class="rule"><b>4</b><span>ID images are deleted after verification; only the result and a reference ID are kept.</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="view" id="view-mod" aria-labelledby="tab-mod">
+  <div class="mod-head">
+    <div>
+      <h2>Trust &amp; safety review</h2>
+      <p>Accounts held by the screening step. Compare the record against the verified identity before deciding. Fictional example cases.</p>
+    </div>
+    <div class="stats">
+      <div class="stat"><b id="st-open">2</b><span>Open cases</span></div>
+      <div class="stat"><b id="st-sus">0</b><span>Suspended</span></div>
+      <div class="stat"><b id="st-clr">0</b><span>Cleared</span></div>
+    </div>
+  </div>
+  <div class="queue" id="queue"></div>
+</section>
+</main>
+
+<script>
+(function(){
+  const $ = s => document.querySelector(s);
+  const screen = $('#screen');
+  const logEl = $('#log');
+  let scenario = 'clear';
+  const user = {name:'', dob:'', email:'', id:false, selfie:false, consent:false};
+  let deckIndex = 0;
+  let chat = [];
+
+  const profiles = [
+    {n:'Amara', a:31, place:'Bequia', bio:'Sunset sails, slow dinners, and a good debate.', tags:['Sailing','Poetry','Soca'], g:'linear-gradient(160deg,#b0304f,#3a0f1f)'},
+    {n:'Kai', a:29, place:'Kingstown', bio:'Chef by day. Will cook for you if the vibe is right.', tags:['Cooking','Jazz','Hiking'], g:'linear-gradient(160deg,#c46a3a,#3d1410)'},
+    {n:'Simone', a:30, place:'Calliaqua', bio:'Nurse, beach walker, terrible at karaoke but goes anyway.', tags:['Beach','Karaoke','Books'], g:'linear-gradient(160deg,#7e2c6e,#200a1d)'},
+    {n:'Devon', a:27, place:'Arnos Vale', bio:'Engineer who still writes love letters by hand.', tags:['Cricket','Film','Travel'], g:'linear-gradient(160deg,#9c2a3a,#1c070c)'}
+  ];
+
+  // ---------- moderator cases ----------
+  const cases = [
+    {id:'C-1042', who:'"Marcus T."', when:'Today, 09:14', source:'US sex-offender registry (via screening provider)', sev:'high',
+     rows:[['Legal name','Marcus A. Thorne','Marcus Anthony Thorne','y'],['Date of birth','1988-03-11','1988-03-11','y'],['Location','Kingstown','Florida, USA (2019)','p'],['Face match to record photo','—','Not used for decisions','p']],
+     note:'Name and DOB match exactly. Confirm before acting.', status:'open'},
+    {id:'C-1043', who:'"Andre W."', when:'Today, 10:02', source:'Public wanted notice list', sev:'med',
+     rows:[['Legal name','Andre Williams','Andre Williams','y'],['Date of birth','1996-07-22','1971-01-04','n'],['Nationality','SVG','Jamaica','n']],
+     note:'Common name. DOB and nationality differ, likely a false match.', status:'open'}
+  ];
+
+  function renderQueue(){
+    const q = $('#queue'); q.innerHTML='';
+    cases.forEach(c=>{
+      const el = document.createElement('article');
+      el.className = 'case' + (c.sev==='high'?' high':'') + (c.status!=='open'?' done':'');
+      const rows = c.rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td class="${r[3]}">${r[3]==='y'?'Match':r[3]==='n'?'No match':'Check'}</td></tr>`).join('');
+      el.innerHTML = `
+        <div>
+          <span class="chip ${c.sev==='high'?'bad':'warn'}">${c.sev==='high'?'High-confidence hit':'Possible hit'}</span>
+          <h3 style="margin-top:8px">${c.id} · ${c.who}</h3>
+          <div class="meta">${c.when}<br>Source: ${c.source}</div>
+          <p class="meta" style="margin-top:8px">${c.note}</p>
+        </div>
+        <div class="tablewrap"><table class="cmp"><thead><tr><th>Field</th><th>Verified ID</th><th>Record</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
+        <div class="btns">${c.status==='open' ? `
+          <button class="btn" data-act="suspend" data-id="${c.id}">Confirm match &amp; suspend</button>
+          <button class="btn okb" data-act="clear" data-id="${c.id}">Not the same person, clear</button>
+          <button class="btn ghost" data-act="info" data-id="${c.id}">Ask provider to re-check</button>` :
+          `<div class="verdict">${c.status==='suspended'?'Suspended. Past matches told only that the account was removed for violating safety rules.':c.status==='cleared'?'Cleared. Account is live; person sees "No records found".':'Re-check requested. Account stays hidden.'}</div>`}
+        </div>`;
+      q.appendChild(el);
+    });
+    const open = cases.filter(c=>c.status==='open'||c.status==='recheck').length;
+    $('#qcount').textContent = open;
+    $('#st-open').textContent = open;
+    $('#st-sus').textContent = cases.filter(c=>c.status==='suspended').length;
+    $('#st-clr').textContent = cases.filter(c=>c.status==='cleared').length;
+  }
+  $('#queue').addEventListener('click', e=>{
+    const b = e.target.closest('button[data-act]'); if(!b) return;
+    const c = cases.find(x=>x.id===b.dataset.id);
+    c.status = b.dataset.act==='suspend'?'suspended':b.dataset.act==='clear'?'cleared':'recheck';
+    log(`moderator: ${c.id} → ${c.status}`, c.status==='suspended'?'b':c.status==='cleared'?'ok':'w');
+    if(c.mine){ appState = c.status; if(current==='review') go('review'); }
+    renderQueue();
+  });
+
+  // ---------- log ----------
+  function log(msg, cls){
+    if(logEl.firstChild && logEl.firstChild.textContent.startsWith('Waiting')) logEl.innerHTML='';
+    const d = document.createElement('div');
+    const t = new Date().toTimeString().slice(0,8);
+    d.innerHTML = `<span class="t">${t}</span> <span class="${cls||''}">${msg}</span>`;
+    logEl.appendChild(d); logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  // ---------- scenario ----------
+  $('#scen').addEventListener('click', e=>{
+    const b = e.target.closest('button'); if(!b) return;
+    scenario = b.dataset.s;
+    document.querySelectorAll('#scen button').forEach(x=>x.setAttribute('aria-pressed', x===b));
+    log(`demo scenario set: ${scenario}`, 't');
+  });
+
+  // ---------- tabs ----------
+  document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected', x===b));
+    document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on', v.id==='view-'+b.dataset.view));
+  }));
+
+  // ---------- screens ----------
+  let current = 'welcome';
+  let appState = 'pending';
+  const steps = n => `<div class="stepper">${[1,2,3,4].map(i=>`<i class="${i<=n?'done':''}"></i>`).join('')}</div>`;
+
+  const S = {
+    welcome(){ return `
+      <div class="spacer"></div>
+      <div class="s-title">Where sparks are <em>safe</em> to fly.</div>
+      <p class="s-sub">Every member on Velvet is ID-verified and safety-screened before they can see or message anyone.</p>
+      <div class="tags"><span>Verified IDs</span><span>Live selfies</span><span>Human review</span></div>
+      <div class="spacer"></div>
+      <button class="btn" data-go="account">Create account</button>
+      <button class="btn ghost" data-go="discover" data-skip="1">Skip to matching (demo)</button>`; },
+
+    account(){ return `
+      ${steps(1)}
+      <div class="s-title">About you</div>
+      <p class="s-sub">Use your legal name. It stays private; only your first name shows on your profile.</p>
+      <div class="field"><label for="f-name">Legal name</label><input id="f-name" value="${user.name}" placeholder="As it appears on your ID"></div>
+      <div class="field"><label for="f-dob">Date of birth</label><input id="f-dob" type="date" value="${user.dob}"></div>
+      <div class="field"><label for="f-email">Email</label><input id="f-email" type="email" value="${user.email}" placeholder="you@example.com"></div>
+      <button class="linkish" id="fill">Fill with sample details</button>
+      <div class="spacer"></div>
+      <button class="btn" id="acct-next">Continue</button>`; },
+
+    verify(){ return `
+      ${steps(2)}
+      <div class="s-title">Verify it's <em>you</em></div>
+      <p class="s-sub">We check your ID is real and that your selfie matches it. Images are deleted once verification finishes.</p>
+      <div class="upload ${user.id?'ok':''}"><div class="ic">🪪</div><div class="t">Government ID<small>${user.id?'Uploaded ✓':'Passport, driver’s licence or national ID'}</small></div>
+        <label class="linkish" for="up-id" style="margin:0">${user.id?'Replace':'Upload'}</label><input id="up-id" type="file" accept="image/*" hidden></div>
+      <div class="upload ${user.selfie?'ok':''}"><div class="ic">🤳</div><div class="t">Live selfie<small>${user.selfie?'Captured ✓':'Turn your head slowly when prompted'}</small></div>
+        <label class="linkish" for="up-selfie" style="margin:0">${user.selfie?'Replace':'Upload'}</label><input id="up-selfie" type="file" accept="image/*" hidden></div>
+      <button class="linkish" id="sample-up">Use sample images (demo)</button>
+      <div class="spacer"></div>
+      <button class="btn" data-go="consent" ${user.id&&user.selfie?'':'disabled'}>Continue</button>`; },
+
+    consent(){ return `
+      ${steps(3)}
+      <div class="s-title">Safety screening</div>
+      <p class="s-sub">To keep members safe, we check your verified name and date of birth against:</p>
+      <div class="checks">
+        <div class="check"><span class="dot" style="background:var(--gold)"></span>Sex-offender registries</div>
+        <div class="check"><span class="dot" style="background:var(--gold)"></span>Public wanted notices &amp; sanctions lists</div>
+        <div class="check"><span class="dot" style="background:var(--gold)"></span>Serious violent-crime records (where lawful)</div>
+      </div>
+      <label class="consent" for="c-ok"><input type="checkbox" id="c-ok" ${user.consent?'checked':''}><span>I agree to this screening. If something comes up, a person will review it, and I can dispute the result.</span></label>
+      <div class="spacer"></div>
+      <button class="btn" id="run" ${user.consent?'':'disabled'}>Run checks</button>`; },
+
+    checking(){ return `
+      ${steps(4)}
+      <div class="s-title">Checking…</div>
+      <p class="s-sub">This usually takes under a minute.</p>
+      <div class="checks" id="checks">
+        ${['ID document is genuine','Selfie matches ID photo','Sex-offender registries','Wanted notices & sanctions','Criminal records'].map((t,i)=>`<div class="check" data-i="${i}"><span class="dot"></span>${t}<span class="r">Queued</span></div>`).join('')}
+      </div>`; },
+
+    review(){
+      if(appState==='cleared') return `
+        <div class="spacer"></div>
+        <div class="notice ok"><b>You're verified.</b><br>Our review found nothing that affects your account. Thanks for your patience.</div>
+        <div class="spacer"></div><button class="btn" data-go="profile">Set up profile</button>`;
+      if(appState==='suspended') return `
+        <div class="spacer"></div>
+        <div class="s-title">Account not approved</div>
+        <div class="notice" style="border-left-color:var(--bad)">We can't approve this account under our safety rules. If you think this is wrong, you can request the record used and dispute it.</div>
+        <div class="spacer"></div><button class="btn ghost" data-go="welcome">Back to start</button>`;
+      if(scenario==='mismatch') return `
+        <div class="spacer"></div>
+        <div class="s-title">Let's try that selfie again</div>
+        <div class="notice">Your selfie didn't match your ID photo clearly enough. Good light and no sunglasses help.</div>
+        <div class="spacer"></div><button class="btn" id="retry-selfie">Retake selfie</button>`;
+      return `
+        <div class="spacer"></div>
+        <div class="s-title">Almost <em>there</em></div>
+        <div class="notice">Your account needs a quick manual review before it goes live. This usually takes up to 24 hours. We'll email you.</div>
+        <p class="s-sub">Demo: open the <b>Moderator queue</b> tab to see this case and decide it.</p>
+        <div class="spacer"></div><button class="btn ghost" id="to-mod">Open moderator queue</button>`;
+    },
+
+    profile(){ return `
+      <div class="s-title">Your profile</div>
+      <div class="card"><div class="pic" style="background:linear-gradient(160deg,#d63a5c,#2a0b17)">${(user.name||'T')[0]}<span class="vb chip">✓ ID verified</span></div>
+        <div class="info"><h3>${(user.name||'Taylor').split(' ')[0]}, ${age(user.dob)||28}</h3><div class="s-sub">Kingstown</div>
+        <div class="tags"><span>Tech</span><span>Beach</span><span>Music</span></div></div></div>
+      <div class="spacer"></div><button class="btn" data-go="discover">Start matching</button>`; },
+
+    discover(){
+      const p = profiles[deckIndex % profiles.length];
+      return `
+      <div class="row" style="justify-content:space-between"><div class="s-title" style="font-size:26px">Discover</div><span class="chip gold">All members verified</span></div>
+      <div class="card"><div class="pic" style="background:${p.g}">${p.n[0]}<span class="vb chip">✓ ID verified</span></div>
+        <div class="info"><h3>${p.n}, ${p.a}</h3><div class="s-sub">${p.place}</div><div>${p.bio}</div><div class="tags">${p.tags.map(t=>`<span>${t}</span>`).join('')}</div></div></div>
+      <div class="actions"><button class="round" id="pass" aria-label="Pass">✕</button><button class="round like" id="like" aria-label="Like">♥</button></div>`; },
+
+    match(){
+      const p = profiles[deckIndex % profiles.length];
+      return `
+      <div class="spacer"></div>
+      <div class="s-title" style="text-align:center">It's a <em>match</em></div>
+      <p class="s-sub" style="text-align:center">You and ${p.n} like each other. Both of you passed ID and safety checks.</p>
+      <div class="spacer"></div>
+      <button class="btn" data-go="chat">Send a message</button>
+      <button class="btn ghost" id="keep">Keep swiping</button>`; },
+
+    chat(){
+      const p = profiles[deckIndex % profiles.length];
+      if(!chat.length) chat = [{w:'sys',t:'You matched with '+p.n+'. Keep chats on Velvet until you feel comfortable.'},{w:'them',t:'Hey you 😊 that profile photo is something else.'}];
+      return `
+      <div class="row"><div class="ic" style="width:40px;height:40px;border-radius:50%;background:${p.g};display:grid;place-items:center;font-family:var(--display);font-size:22px">${p.n[0]}</div>
+        <div><b>${p.n}</b> <span class="chip" style="margin-left:4px">✓</span><div class="s-sub" style="font-size:12px">${p.place}</div></div></div>
+      <div class="safetybar"><button id="sv-video">Video call</button><button id="sv-date">Share my date</button><button id="sv-report">Report / block</button></div>
+      <div id="sheet"></div>
+      <div class="chat">${chat.map(m=>`<div class="msg ${m.w}">${m.t}</div>`).join('')}</div>
+      <form class="row" id="send"><input id="msg" aria-label="Message" placeholder="Say something sweet…" style="flex:1;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:10px 14px"><button class="round like" style="width:44px;height:44px;font-size:16px" aria-label="Send">➤</button></form>`; }
+  };
+
+  function age(d){ if(!d) return 0; const b=new Date(d), n=new Date(); let a=n.getFullYear()-b.getFullYear(); if(n<new Date(n.getFullYear(),b.getMonth(),b.getDate())) a--; return a; }
+
+  function go(name){ current=name; screen.innerHTML = S[name](); screen.scrollTop=0; bind(); }
+
+  function bind(){
+    screen.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>{ if(b.dataset.skip) log('demo: skipped signup','t'); go(b.dataset.go); }));
+    const on = (id,ev,fn)=>{ const el=screen.querySelector('#'+id); if(el) el.addEventListener(ev,fn); };
+
+    on('fill','click',()=>{ user.name='Taylor Morgan'; user.dob='1996-05-29'; user.email='taylor@example.com'; go('account'); });
+    on('acct-next','click',()=>{
+      user.name=$('#f-name').value.trim(); user.dob=$('#f-dob').value; user.email=$('#f-email').value.trim();
+      if(!user.name||!user.dob){ $('#f-name').focus(); $('#f-name').placeholder='Enter your legal name to continue'; return; }
+      if(age(user.dob)<18){ screen.querySelector('.s-sub').textContent='You must be 18 or older to join Velvet.'; screen.querySelector('.s-sub').style.color='var(--bad)'; log('signup blocked: under 18','b'); return; }
+      log(`account created for "${user.name}" (age ${age(user.dob)})`,'ok'); go('verify');
+    });
+    on('up-id','change',e=>{ if(e.target.files.length){ user.id=true; log('ID image received → sent to verification provider','t'); go('verify'); }});
+    on('up-selfie','change',e=>{ if(e.target.files.length){ user.selfie=true; log('selfie received → liveness check','t'); go('verify'); }});
+    on('sample-up','click',()=>{ user.id=user.selfie=true; log('demo: sample ID + selfie used','t'); go('verify'); });
+    on('c-ok','change',e=>{ user.consent=e.target.checked; screen.querySelector('#run').disabled=!user.consent; });
+    on('run','click',()=>{ log('screening consent recorded','ok'); go('checking'); runChecks(); });
+    on('retry-selfie','click',()=>{ user.selfie=false; scenario='clear'; document.querySelectorAll('#scen button').forEach(x=>x.setAttribute('aria-pressed', x.dataset.s==='clear')); log('selfie retake requested; scenario reset to clear','t'); go('verify'); });
+    on('to-mod','click',()=>$('#tab-mod').click());
+    on('like','click',()=>{ log(`liked ${profiles[deckIndex%profiles.length].n}`,'t'); go('match'); });
+    on('pass','click',()=>{ deckIndex++; go('discover'); });
+    on('keep','click',()=>{ deckIndex++; chat=[]; go('discover'); });
+    on('send','submit',e=>{ e.preventDefault(); const v=$('#msg').value.trim(); if(!v) return;
+      const unsafe = /(cashapp|western union|send money|gift card|whatsapp me|\+?\d{7,})/i.test(v);
+      chat.push({w:'me',t:v.replace(/</g,'&lt;')});
+      if(unsafe){ chat.push({w:'sys',t:'Heads up: sharing numbers or money requests early is a common scam pattern. Take your time.'}); log('message safety nudge shown','w'); }
+      go('chat'); });
+    on('sv-video','click',()=>sheet(`<b>Video call before you meet</b><span class="s-sub">A quick call confirms the person matches their verified profile. (Calls need a real backend; this is a placeholder.)</span><button class="btn ghost" data-close>Close</button>`));
+    on('sv-date','click',()=>sheet(`<b>Share my date</b><div class="field"><label for="d-where">Where</label><input id="d-where" placeholder="e.g. Young Island restaurant"></div><div class="field"><label for="d-when">When</label><input id="d-when" type="datetime-local"></div><div class="field"><label for="d-who">Trusted contact</label><input id="d-who" placeholder="Name or phone"></div><button class="btn" id="d-save">Share plan</button>`));
+    on('sv-report','click',()=>sheet(`<b>Report or block</b><div class="field"><label for="r-why">What happened?</label><select id="r-why"><option>Feels unsafe or threatening</option><option>Asked for money</option><option>Fake profile</option><option>Underage</option><option>Something else</option></select></div><button class="btn" id="r-send">Report &amp; block</button><span class="s-sub">They won't be told who reported them.</span>`));
+  }
+
+  function sheet(html){
+    const s=$('#sheet'); s.innerHTML=`<div class="sheet">${html}</div>`;
+    s.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>s.innerHTML='');
+    const ds=s.querySelector('#d-save'); if(ds) ds.onclick=()=>{ log(`date plan shared with ${$('#d-who').value||'trusted contact'}`,'ok'); s.innerHTML=`<div class="notice ok">Plan saved for ${$('#d-who').value||'your contact'}. In the real app they'd get a message with the place and time, plus a check-in reminder.</div>`; };
+    const rs=s.querySelector('#r-send'); if(rs) rs.onclick=()=>{
+      const p=profiles[deckIndex%profiles.length];
+      cases.unshift({id:'C-'+(1044+cases.length), who:`"${p.n}" (member report)`, when:'Just now', source:'Member report: '+$('#r-why').value, sev:'med', rows:[['Report reason',$('#r-why').value,'—','p'],['Prior reports','—','0','y']], note:'Reported by a match. Reporter identity hidden from the reported member.', status:'open'});
+      renderQueue(); log(`report filed against ${p.n}; blocked`,'w');
+      chat=[]; deckIndex++; go('discover');
+    };
+  }
+
+  function runChecks(){
+    const plan = {
+      clear:   ['pass','pass','pass','pass','pass'],
+      registry:['pass','pass','hold','pass','pass'],
+      warrant: ['pass','pass','pass','hold','pass'],
+      mismatch:['pass','hold']
+    }[scenario];
+    const rows = [...screen.querySelectorAll('.check')];
+    let i=0;
+    (function next(){
+      if(current!=='checking') return;
+      if(i>=plan.length || i>=rows.length){ finish(plan); return; }
+      const r=rows[i]; r.className='check run'; r.querySelector('.r').textContent='Checking';
+      setTimeout(()=>{
+        const res=plan[i]; r.className='check '+res; r.querySelector('.r').textContent = res==='pass'?'Clear':'Needs review';
+        log(`${r.textContent.replace(/Clear|Needs review/,'').trim()}: ${res==='pass'?'clear':'possible match → held'}`, res==='pass'?'ok':'w');
+        i++; if(res==='hold' && scenario==='mismatch'){ rows.slice(i).forEach(x=>x.querySelector('.r').textContent='Skipped'); finish(plan); return; }
+        next();
+      }, 650);
+    })();
+  }
+
+  function finish(plan){
+    setTimeout(()=>{
+      if(!plan.includes('hold')){ log('all checks clear → account live','ok'); appState='cleared'; go('profile'); return; }
+      if(scenario==='mismatch'){ log('liveness failed → retake requested (no case opened)','w'); go('review'); return; }
+      const name = user.name||'Taylor Morgan', dob = user.dob||'1996-05-29';
+      const c = scenario==='registry'
+        ? {id:'C-'+(1044+cases.length), who:`"${name.split(' ')[0]}" (your signup)`, when:'Just now', source:'Sex-offender registry (demo record)', sev:'high', mine:true,
+           rows:[['Legal name',name,name,'y'],['Date of birth',dob,dob,'y'],['Location','Kingstown','Out of region (demo)','p']], note:'Exact name + DOB match on a demo record. Confirm the record before acting.', status:'open'}
+        : {id:'C-'+(1044+cases.length), who:`"${name.split(' ')[0]}" (your signup)`, when:'Just now', source:'Public wanted notice (demo record)', sev:'med', mine:true,
+           rows:[['Legal name',name,name,'y'],['Date of birth',dob,'1979-02-14','n'],['Nationality','SVG','Other','n']], note:'Name only. DOB and nationality differ, likely a false match.', status:'open'};
+      cases.unshift(c); renderQueue();
+      log(`case ${c.id} opened; account hidden from discovery; no member notified`,'w');
+      appState='pending'; go('review');
+    }, 500);
+  }
+
+  renderQueue();
+  go('welcome');
+})();
+</script>
+</body>
+</html>
