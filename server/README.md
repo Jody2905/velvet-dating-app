@@ -4,28 +4,34 @@ Node.js + Express + PostgreSQL backend for Velvet: accounts, ID verification res
 
 ## Quick start
 
-You need Node.js 20+ and PostgreSQL (or Docker).
+You need Node.js 20+ and a PostgreSQL database. The easiest option is [Neon](https://neon.tech) (free, nothing to install).
 
 ```bash
 cd server
 npm install
-cp .env.example .env          # then set JWT_SECRET (see the comment in the file)
-docker compose up -d          # starts PostgreSQL on port 5432 (skip if you have Postgres installed)
-npm run db:reset              # creates the tables
+cp .env.example .env          # paste your Neon connection string into DATABASE_URL, set JWT_SECRET
+npm run db:reset              # creates the tables (uses Neon's direct connection)
 npm run db:seed               # adds fictional demo members and two review cases
 npm run dev                   # open http://localhost:3000 for the full app
 ```
+
+With the Neon CLI you can fill in the connection strings automatically: `neon env pull` (the project is linked in `.neon` and `neon.ts`). Prefer local Postgres? `docker compose up -d` starts one that matches the commented example in `.env.example`.
+
+**Connections:** the app uses Neon's pooled connection (`DATABASE_URL`, host contains `-pooler`) through `node-postgres`, since Express is a long-running server. Schema changes use the direct connection (`DATABASE_URL_UNPOOLED`, or derived automatically by dropping `-pooler`).
 
 Demo logins (password `velvet-demo-pass`): `mod@example.com` (moderator), `amara@example.com`, `kai@example.com`, `simone@example.com`, `devon@example.com`.
 
 ### Tests
 
+The tests **erase** the database they run on, so they only use `TEST_DATABASE_URL` and refuse to run against `DATABASE_URL`. Point it at a throwaway Neon branch:
+
 ```bash
-createdb velvet_test   # or: docker compose exec db createdb -U velvet velvet_test
-TEST_DATABASE_URL=postgres://velvet:velvet@localhost:5432/velvet_test npm test
+neon checkout test --create          # creates a branch that auto-expires after 7 days
+neon connection-string test          # copy this into TEST_DATABASE_URL in .env
+npm test
 ```
 
-The tests reset the test database and run 17 end-to-end checks covering the safety rules below. They also run automatically on GitHub Actions on every push.
+`npm run build` syntax-checks every file and confirms the app loads. The tests reset the test database and run 17 end-to-end checks covering the safety rules below. They also run automatically on GitHub Actions on every push.
 
 ## Account lifecycle
 

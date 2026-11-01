@@ -1,7 +1,20 @@
 // End-to-end API tests against a real PostgreSQL database.
 // Uses TEST_DATABASE_URL (falls back to DATABASE_URL). The schema is reset before the run.
-require('dotenv').config({ quiet: true });
-process.env.DATABASE_URL = process.env.TEST_DATABASE_URL || process.env.DATABASE_URL;
+// These tests WIPE the database they run against, so they only use TEST_DATABASE_URL
+// (e.g. a throwaway Neon branch: `neon checkout test --create`), never DATABASE_URL.
+require('../src/env');
+const testUrl = process.env.TEST_DATABASE_URL;
+if (!testUrl) {
+  console.error('Set TEST_DATABASE_URL to a throwaway database before running tests. They erase all data.');
+  process.exit(1);
+}
+if (testUrl === process.env.DATABASE_URL || testUrl === process.env.DATABASE_URL_UNPOOLED) {
+  console.error('TEST_DATABASE_URL must not be your main database: the tests erase all data.');
+  process.exit(1);
+}
+process.env.DATABASE_URL = testUrl;
+process.env.NODE_ENV = 'test';
+process.env.DEMO_MODE = 'true';
 process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-secret-test-secret-test-secret-123';
 
 const { test, before, after } = require('node:test');

@@ -1,6 +1,6 @@
 // Loads fictional demo data: one moderator, four active members, two open review cases.
 // Run: npm run db:seed   (after npm run db:reset)
-require('dotenv').config({ quiet: true });
+require('../src/env');
 const bcrypt = require('bcryptjs');
 const { pool, tx } = require('../src/db');
 const { compare, severityFor } = require('../src/services/screening');
