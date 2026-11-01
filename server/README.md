@@ -13,7 +13,7 @@ cp .env.example .env          # then set JWT_SECRET (see the comment in the file
 docker compose up -d          # starts PostgreSQL on port 5432 (skip if you have Postgres installed)
 npm run db:reset              # creates the tables
 npm run db:seed               # adds fictional demo members and two review cases
-npm run dev                   # http://localhost:3000
+npm run dev                   # open http://localhost:3000 for the full app
 ```
 
 Demo logins (password `velvet-demo-pass`): `mod@example.com` (moderator), `amara@example.com`, `kai@example.com`, `simone@example.com`, `devon@example.com`.
@@ -25,7 +25,7 @@ createdb velvet_test   # or: docker compose exec db createdb -U velvet velvet_te
 TEST_DATABASE_URL=postgres://velvet:velvet@localhost:5432/velvet_test npm test
 ```
 
-The tests reset the test database and run 16 end-to-end checks covering the safety rules below. They also run automatically on GitHub Actions on every push.
+The tests reset the test database and run 17 end-to-end checks covering the safety rules below. They also run automatically on GitHub Actions on every push.
 
 ## Account lifecycle
 
@@ -42,6 +42,7 @@ All endpoints except register, login and health need `Authorization: Bearer <tok
 
 | Method | Path | Who | What it does |
 |---|---|---|---|
+| GET | `/` | anyone | The front end (`../index.html`) with a nonce-based CSP |
 | POST | `/api/auth/register` | anyone | Create account (18+ only) |
 | POST | `/api/auth/login` | anyone | Get a token |
 | GET | `/api/auth/me` | member | Your account, verification and profile |
@@ -69,12 +70,12 @@ In demo mode (`DEMO_MODE=true`) you can pass `"scenario": "registry"` or `"watch
 - **Reporter anonymity.** Moderators see the report, not who filed it.
 - **18+ enforced twice.** In the API and by a database constraint.
 - **Append-only audit log.** A database trigger blocks UPDATE and DELETE.
+- **Strict Content Security Policy.** The page is served with a fresh nonce per request, so only its own script can run; all member content is HTML-escaped before display.
 - **Hardened API.** bcrypt password hashing, short-lived JWTs, account status re-checked on every request (suspensions apply at once), input validation with Zod, Helmet headers, CORS allow-list, rate limiting on login, and a 20 KB request body limit.
 - **No ID images stored.** Only the provider's reference and pass/fail result.
 
 ## Next steps
 
-- Connect the front end (`../index.html`) to this API
 - Replace the mock screening provider in `src/services/screening.js` with a real one in sandbox mode
 - Receive verification results through a signed provider webhook
 - Real-time chat over WebSockets

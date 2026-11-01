@@ -3,6 +3,14 @@ const helmet = require('helmet');
 const cors = require('cors');
 const { rateLimit } = require('express-rate-limit');
 const { ZodError } = require('zod');
+const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
+
+function loadFrontend() {
+  try { return fs.readFileSync(path.join(__dirname, '..', '..', 'index.html'), 'utf8'); }
+  catch { return null; }
+}
 
 function createApp() {
   const app = express();
@@ -16,6 +24,27 @@ function createApp() {
       ? (req, res, next) => next()
       : rateLimit({ windowMs, limit, standardHeaders: 'draft-8', legacyHeaders: false,
           message: { error: 'Too many attempts. Wait a few minutes and try again.' } });
+
+  // Serve the front end (../index.html) with a strict, per-request nonce CSP:
+  // only the page's own inline script (carrying the nonce) may run.
+  const frontend = loadFrontend();
+  app.get('/', (req, res) => {
+    if (!frontend) return res.status(404).send('Front end not found');
+    const nonce = crypto.randomBytes(16).toString('base64');
+    res.set('Content-Security-Policy', [
+      "default-src 'self'",
+      `script-src 'nonce-${nonce}'`,
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "font-src https://fonts.gstatic.com",
+      "img-src 'self' data:",
+      "connect-src 'self'",
+      "object-src 'none'",
+      "base-uri 'none'",
+      "form-action 'self'",
+      "frame-ancestors 'none'",
+    ].join('; '));
+    res.type('html').send(frontend.replace('<script>', `<script nonce="${nonce}">`));
+  });
 
   app.get('/api/health', (req, res) => res.json({ ok: true }));
   app.use('/api/auth', limiter(20, 15 * 60 * 1000), require('./routes/auth'));

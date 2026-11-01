@@ -42,6 +42,13 @@ before(async () => {
 
 after(() => pool.end());
 
+test('serves the front end with a nonce-based CSP', async () => {
+  const r = await api().get('/').expect(200);
+  const nonce = /script-src 'nonce-([^']+)'/.exec(r.headers['content-security-policy'])[1];
+  assert.ok(r.text.includes(`<script nonce="${nonce}">`));
+  assert.doesNotMatch(r.headers['content-security-policy'], /script-src[^;]*unsafe-inline/);
+});
+
 test('rejects under-18 signups', async () => {
   const year = new Date().getFullYear() - 17;
   const r = await api().post('/api/auth/register').send({ email: 'kid@test.dev', password: 'correct-horse-battery', legalName: 'Too Young', dateOfBirth: `${year}-01-01` });

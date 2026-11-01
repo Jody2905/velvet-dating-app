@@ -1,6 +1,6 @@
-# Velvet: Safety-First Dating App Prototype
+# Velvet: Safety-First Dating App
 
-Velvet is an interactive prototype of a dating app where every member is ID-verified and screened for safety before they can see or message anyone. It focuses on the trust and safety design: identity verification, background screening with consent, and human review of flagged accounts, so that no one is publicly accused on the basis of a look-alike photo or a shared name.
+Velvet is a full-stack dating app where every member is ID-verified and screened for safety before they can see or message anyone. It focuses on the trust and safety design: identity verification, background screening with consent, and human review of flagged accounts, so that no one is publicly accused on the basis of a look-alike photo or a shared name.
 
 ![Member app](screenshot-app.png)
 ![Moderator queue](screenshot-moderator.png)
@@ -22,9 +22,10 @@ Velvet is an interactive prototype of a dating app where every member is ID-veri
 - Actions: confirm and suspend, clear as a false match, or request a re-check
 - Member reports feed into the same queue
 
-**Demo controls**
-- Switch the screening result between *All clear*, *Registry match*, *Watchlist match* and *Selfie mismatch*
-- An audit log shows what the backend would record at each step
+**Two ways to run**
+- **Live mode:** served by the API at `http://localhost:3000`. Signups, likes, matches, chat, reports and moderator decisions are saved in PostgreSQL. The page detects the server automatically.
+- **Demo mode:** open `index.html` directly or on GitHub Pages. Everything runs in the page with fictional data, so anyone can click through without a server.
+- Demo controls switch the screening result between *All clear*, *Registry match*, *Watchlist match* and *Selfie mismatch*, and an activity log shows each step.
 
 ## Design principles
 
@@ -33,26 +34,32 @@ Velvet is an interactive prototype of a dating app where every member is ID-veri
 3. **Due process.** False matches are cleared quietly, and people can dispute a decision.
 4. **Data minimisation.** ID images are deleted after verification; only the result and a reference are kept.
 
-## Run the front end
+## Run it
 
-The prototype is a single self-contained HTML file with no build step:
+**Full app (live mode)** needs Node.js 20+ and PostgreSQL or Docker:
 
 ```bash
 git clone https://github.com/Jody2905/velvet-dating-app.git
-cd velvet-dating-app
-open index.html   # or double-click it
+cd velvet-dating-app/server
+npm install
+cp .env.example .env        # set JWT_SECRET
+docker compose up -d        # PostgreSQL
+npm run db:reset && npm run db:seed
+npm run dev                 # open http://localhost:3000
 ```
 
-Or enable **GitHub Pages** (Settings → Pages → Deploy from branch → `main` / root) to host it for free.
+Sign in as `amara@example.com` or `kai@example.com` (password `velvet-demo-pass`) to see an existing match and chat, or create a new account. The moderator account is `mod@example.com` with the same password. To watch a new match form, like Simone from a new account, then sign in as `simone@example.com` in a private window and like back.
+
+**Demo mode only:** open `index.html` in a browser, or see it on [GitHub Pages](https://jody2905.github.io/velvet-dating-app/).
 
 ## Backend API
 
-The [`server/`](server/) folder has the Node.js + Express + PostgreSQL API: accounts, verification results, consent-based screening, matching, chat, reports and the moderator queue, with 16 end-to-end tests that run on GitHub Actions. See [server/README.md](server/README.md) for setup, endpoints and the security rules it enforces.
+The [`server/`](server/) folder has the Node.js + Express + PostgreSQL API: accounts, verification results, consent-based screening, matching, chat, reports and the moderator queue, with 17 end-to-end tests that run on GitHub Actions. It also serves the front end with a strict nonce-based Content Security Policy. See [server/README.md](server/README.md) for endpoints and the security rules it enforces.
 
 ## Project structure
 
 ```
-index.html              Front-end prototype (GitHub Pages)
+index.html              Front end (live mode via the API, demo mode on GitHub Pages)
 server/
   db/schema.sql         PostgreSQL tables, constraints, append-only audit trigger
   db/seed.js            Fictional demo data
@@ -67,7 +74,7 @@ server/
 - [x] Interactive front-end prototype
 - [x] PostgreSQL schema and REST API with role-based access
 - [x] Automated tests and CI
-- [ ] Connect the front end to the API
+- [x] Front end connected to the API (with offline demo fallback)
 - [ ] ID-verification provider (e.g. Persona, Onfido, Veriff) in sandbox mode
 - [ ] Licensed background-check provider with rules per country
 - [ ] Real-time chat (WebSockets) and video

@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
 <title>Velvet Dating Prototype</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -29,7 +30,7 @@
 *{box-sizing:border-box}
 html,body{margin:0;min-height:100%}
 body{background:radial-gradient(1200px 600px at 20% -10%,#3a1022 0%,transparent 60%),var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
-button,input,select{font:inherit;color:inherit}
+button,input,select,textarea{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 h1,h2,h3{text-wrap:balance;margin:0}
 .top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 24px;border-bottom:1px solid var(--line);flex-wrap:wrap}
@@ -152,11 +153,29 @@ table.cmp th{color:var(--muted);font-weight:500}
 .btn.okb{background:#2f7d5c}
 .verdict{font-size:13px;padding:10px;border-radius:12px;background:var(--surface-2)}
 .tablewrap{overflow-x:auto}
+
+.err{color:var(--bad);font-size:13px;min-height:1em;margin:0}
+.hint{font-size:12px;color:var(--muted);background:#ffffff08;border-radius:10px;padding:8px 10px}
+.field textarea,.case textarea{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;resize:vertical;width:100%}
+.mlist{display:flex;flex-direction:column;gap:8px}
+.mrow{display:flex;align-items:center;gap:12px;background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:10px 12px;cursor:pointer;text-align:left;width:100%}
+.mrow:hover{border-color:var(--accent-soft)}
+.av{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-family:var(--display);font-size:22px;flex:none}
+.topline{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.mini{background:none;border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:12px;cursor:pointer;color:var(--ink)}
+.mode-pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;border-radius:999px;padding:3px 10px;background:var(--surface-2);border:1px solid var(--line)}
+.mode-pill i{width:8px;height:8px;border-radius:50%;background:var(--gold)}
+.mode-pill.live i{background:var(--ok)}
+.conn{display:flex;gap:8px;flex-wrap:wrap}
+.conn input{flex:1;min-width:180px;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.conn .btn{width:auto}
+.modlogin{max-width:420px;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:12px}
+.modlogin input{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:11px 12px}
 </style>
 </head>
 <body>
 <header class="top">
-  <div class="brand"><b>V</b>elvet</div>
+  <div class="row" style="gap:14px"><div class="brand"><b>V</b>elvet</div><span class="mode-pill" id="mode-pill"><i></i><span>Demo data</span></span></div>
   <nav class="tabs" role="tablist" aria-label="Views">
     <button role="tab" id="tab-app" aria-selected="true" data-view="app">Member app</button>
     <button role="tab" id="tab-mod" aria-selected="false" data-view="mod">Moderator queue<span class="badge-count" id="qcount">2</span></button>
@@ -166,12 +185,24 @@ table.cmp th{color:var(--muted);font-weight:500}
 <main>
 <section class="view on" id="view-app" aria-labelledby="tab-app">
   <div class="app-layout">
-    <div class="phone"><div class="notch"></div><div class="screen" id="screen"></div></div>
+    <div class="phone"><div class="notch"></div><div class="screen" id="screen" aria-live="polite"></div></div>
 
     <div class="side">
       <div class="panel">
+        <h2>Backend</h2>
+        <p id="conn-text"></p>
+        <form class="conn" id="conn-form">
+          <label for="conn-url" style="position:absolute;left:-9999px">API address</label>
+          <input id="conn-url" placeholder="API address, e.g. http://localhost:3000">
+          <button class="btn" type="submit">Connect</button>
+        </form>
+        <p class="err" id="conn-err"></p>
+        <button class="linkish" id="conn-demo" type="button">Use demo data instead</button>
+      </div>
+
+      <div class="panel">
         <h2>Demo scenario</h2>
-        <p>Pick what the background check returns for the person signing up, then go through signup on the phone. All data here is fictional.</p>
+        <p>Pick what the checks return for the next person who signs up. With the live API this needs <code>DEMO_MODE=true</code> on the server. All data is fictional.</p>
         <div class="scen" id="scen">
           <button data-s="clear" aria-pressed="true"><b>All clear</b><span>No records found. Account goes live.</span></button>
           <button data-s="registry"><b>Registry match</b><span>Name + DOB match a sex-offender registry entry.</span></button>
@@ -192,9 +223,9 @@ table.cmp th{color:var(--muted);font-weight:500}
       </div>
 
       <div class="panel">
-        <h2>Audit log</h2>
-        <p>What the backend recorded for this signup.</p>
-        <div class="log" id="log" aria-live="polite"><div class="t">Waiting for signup…</div></div>
+        <h2>Activity log</h2>
+        <p>What happened in this session.</p>
+        <div class="log" id="log"><div class="t">Waiting for signup…</div></div>
       </div>
 
       <div class="panel">
@@ -214,10 +245,10 @@ table.cmp th{color:var(--muted);font-weight:500}
   <div class="mod-head">
     <div>
       <h2>Trust &amp; safety review</h2>
-      <p>Accounts held by the screening step. Compare the record against the verified identity before deciding. Fictional example cases.</p>
+      <p id="mod-sub">Accounts held by screening or member reports. Compare the record against the verified identity before deciding.</p>
     </div>
     <div class="stats">
-      <div class="stat"><b id="st-open">2</b><span>Open cases</span></div>
+      <div class="stat"><b id="st-open">0</b><span>Open cases</span></div>
       <div class="stat"><b id="st-sus">0</b><span>Suspended</span></div>
       <div class="stat"><b id="st-clr">0</b><span>Cleared</span></div>
     </div>
@@ -228,297 +259,576 @@ table.cmp th{color:var(--muted);font-weight:500}
 
 <script>
 (function(){
+  'use strict';
   const $ = s => document.querySelector(s);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const safeStore = area => ({
+    get(k){ try { return window[area].getItem(k); } catch { return null; } },
+    set(k, v){ try { v == null ? window[area].removeItem(k) : window[area].setItem(k, v); } catch {} }
+  });
+  const session = safeStore('sessionStorage'), local = safeStore('localStorage');
+
   const screen = $('#screen');
   const logEl = $('#log');
-  let scenario = 'clear';
-  const user = {name:'', dob:'', email:'', id:false, selfie:false, consent:false};
-  let deckIndex = 0;
-  let chat = [];
 
-  const profiles = [
-    {n:'Amara', a:31, place:'Bequia', bio:'Sunset sails, slow dinners, and a good debate.', tags:['Sailing','Poetry','Soca'], g:'linear-gradient(160deg,#b0304f,#3a0f1f)'},
-    {n:'Kai', a:29, place:'Kingstown', bio:'Chef by day. Will cook for you if the vibe is right.', tags:['Cooking','Jazz','Hiking'], g:'linear-gradient(160deg,#c46a3a,#3d1410)'},
-    {n:'Simone', a:30, place:'Calliaqua', bio:'Nurse, beach walker, terrible at karaoke but goes anyway.', tags:['Beach','Karaoke','Books'], g:'linear-gradient(160deg,#7e2c6e,#200a1d)'},
-    {n:'Devon', a:27, place:'Arnos Vale', bio:'Engineer who still writes love letters by hand.', tags:['Cricket','Film','Travel'], g:'linear-gradient(160deg,#9c2a3a,#1c070c)'}
+  // ---------- state ----------
+  let mode = 'demo';            // 'demo' (in-page data) or 'api' (real backend)
+  let apiBase = '';
+  let token = session.get('velvet.token');
+  let modToken = session.get('velvet.modToken');
+  let meId = session.get('velvet.meId');
+  let scenario = 'clear';
+  let current = 'welcome', renderSeq = 0, pollTimer = null;
+  let appState = 'pending', reviewKind = null;
+  const user = {name:'', dob:'', email:'', password:'', id:false, selfie:false, consent:false};
+  let deck = null, demoIndex = 0, demoMatches = [], demoChats = {};
+  let currentMatch = null, chatWarning = '', matchList = [];
+  let cases = [];
+
+  const GRADS = ['linear-gradient(160deg,#b0304f,#3a0f1f)','linear-gradient(160deg,#c46a3a,#3d1410)','linear-gradient(160deg,#7e2c6e,#200a1d)','linear-gradient(160deg,#9c2a3a,#1c070c)','linear-gradient(160deg,#d63a5c,#2a0b17)'];
+  const gFor = id => GRADS[[...String(id)].reduce((a, ch) => a + ch.charCodeAt(0), 0) % GRADS.length];
+
+  const demoProfiles = [
+    {id:'d1', display_name:'Amara', age:31, location:'Bequia', bio:'Sunset sails, slow dinners, and a good debate.', interests:['Sailing','Poetry','Soca']},
+    {id:'d2', display_name:'Kai', age:29, location:'Kingstown', bio:'Chef by day. Will cook for you if the vibe is right.', interests:['Cooking','Jazz','Hiking']},
+    {id:'d3', display_name:'Simone', age:30, location:'Calliaqua', bio:'Nurse, beach walker, terrible at karaoke but goes anyway.', interests:['Beach','Karaoke','Books']},
+    {id:'d4', display_name:'Devon', age:27, location:'Arnos Vale', bio:'Engineer who still writes love letters by hand.', interests:['Cricket','Film','Travel']}
   ];
 
-  // ---------- moderator cases ----------
-  const cases = [
-    {id:'C-1042', who:'"Marcus T."', when:'Today, 09:14', source:'US sex-offender registry (via screening provider)', sev:'high',
-     rows:[['Legal name','Marcus A. Thorne','Marcus Anthony Thorne','y'],['Date of birth','1988-03-11','1988-03-11','y'],['Location','Kingstown','Florida, USA (2019)','p'],['Face match to record photo','—','Not used for decisions','p']],
+  const demoCases = () => [
+    {id:'C-1042', who:'Marcus', legal:'Marcus Anthony Thorne', when:'Today, 09:14', source:'Sex-offender registry (via screening provider)', sev:'high',
+     rows:[['Legal name','Marcus Anthony Thorne','Marcus Anthony Thorne','y'],['Date of birth','1988-03-11','1988-03-11','y'],['Location','Kingstown','Florida, USA (2019)','p']],
      note:'Name and DOB match exactly. Confirm before acting.', status:'open'},
-    {id:'C-1043', who:'"Andre W."', when:'Today, 10:02', source:'Public wanted notice list', sev:'med',
+    {id:'C-1043', who:'Andre', legal:'Andre Williams', when:'Today, 10:02', source:'Public wanted notice list', sev:'med',
      rows:[['Legal name','Andre Williams','Andre Williams','y'],['Date of birth','1996-07-22','1971-01-04','n'],['Nationality','SVG','Jamaica','n']],
      note:'Common name. DOB and nationality differ, likely a false match.', status:'open'}
   ];
+  cases = demoCases();
 
-  function renderQueue(){
-    const q = $('#queue'); q.innerHTML='';
-    cases.forEach(c=>{
-      const el = document.createElement('article');
-      el.className = 'case' + (c.sev==='high'?' high':'') + (c.status!=='open'?' done':'');
-      const rows = c.rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td class="${r[3]}">${r[3]==='y'?'Match':r[3]==='n'?'No match':'Check'}</td></tr>`).join('');
-      el.innerHTML = `
-        <div>
-          <span class="chip ${c.sev==='high'?'bad':'warn'}">${c.sev==='high'?'High-confidence hit':'Possible hit'}</span>
-          <h3 style="margin-top:8px">${c.id} · ${c.who}</h3>
-          <div class="meta">${c.when}<br>Source: ${c.source}</div>
-          <p class="meta" style="margin-top:8px">${c.note}</p>
-        </div>
-        <div class="tablewrap"><table class="cmp"><thead><tr><th>Field</th><th>Verified ID</th><th>Record</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
-        <div class="btns">${c.status==='open' ? `
-          <button class="btn" data-act="suspend" data-id="${c.id}">Confirm match &amp; suspend</button>
-          <button class="btn okb" data-act="clear" data-id="${c.id}">Not the same person, clear</button>
-          <button class="btn ghost" data-act="info" data-id="${c.id}">Ask provider to re-check</button>` :
-          `<div class="verdict">${c.status==='suspended'?'Suspended. Past matches told only that the account was removed for violating safety rules.':c.status==='cleared'?'Cleared. Account is live; person sees "No records found".':'Re-check requested. Account stays hidden.'}</div>`}
-        </div>`;
-      q.appendChild(el);
+  // ---------- API client ----------
+  async function api(path, opts = {}) {
+    const auth = 'auth' in opts ? opts.auth : token;
+    const res = await fetch(apiBase + path, {
+      method: opts.method || 'GET',
+      headers: Object.assign({'Content-Type':'application/json'}, auth ? {Authorization:'Bearer ' + auth} : {}),
+      body: opts.body ? JSON.stringify(opts.body) : undefined
     });
-    const open = cases.filter(c=>c.status==='open'||c.status==='recheck').length;
-    $('#qcount').textContent = open;
-    $('#st-open').textContent = open;
-    $('#st-sus').textContent = cases.filter(c=>c.status==='suspended').length;
-    $('#st-clr').textContent = cases.filter(c=>c.status==='cleared').length;
+    const data = res.status === 204 ? null : await res.json().catch(() => null);
+    if (!res.ok) { const e = new Error((data && data.error) || 'Request failed (' + res.status + ')'); e.status = res.status; throw e; }
+    return data;
   }
-  $('#queue').addEventListener('click', e=>{
-    const b = e.target.closest('button[data-act]'); if(!b) return;
-    const c = cases.find(x=>x.id===b.dataset.id);
-    c.status = b.dataset.act==='suspend'?'suspended':b.dataset.act==='clear'?'cleared':'recheck';
-    log(`moderator: ${c.id} → ${c.status}`, c.status==='suspended'?'b':c.status==='cleared'?'ok':'w');
-    if(c.mine){ appState = c.status; if(current==='review') go('review'); }
-    renderQueue();
-  });
+  async function healthy(base) {
+    try { const r = await fetch(base + '/api/health'); return r.ok && (await r.json()).ok === true; } catch { return false; }
+  }
 
   // ---------- log ----------
   function log(msg, cls){
-    if(logEl.firstChild && logEl.firstChild.textContent.startsWith('Waiting')) logEl.innerHTML='';
+    if (logEl.firstChild && logEl.firstChild.textContent.startsWith('Waiting')) logEl.innerHTML = '';
     const d = document.createElement('div');
-    const t = new Date().toTimeString().slice(0,8);
-    d.innerHTML = `<span class="t">${t}</span> <span class="${cls||''}">${msg}</span>`;
+    d.innerHTML = '<span class="t">' + new Date().toTimeString().slice(0,8) + '</span> <span class="' + (cls || '') + '">' + esc(msg) + '</span>';
     logEl.appendChild(d); logEl.scrollTop = logEl.scrollHeight;
   }
 
-  // ---------- scenario ----------
-  $('#scen').addEventListener('click', e=>{
-    const b = e.target.closest('button'); if(!b) return;
-    scenario = b.dataset.s;
-    document.querySelectorAll('#scen button').forEach(x=>x.setAttribute('aria-pressed', x===b));
-    log(`demo scenario set: ${scenario}`, 't');
+  // ---------- mode / connection ----------
+  function setMode(m, base){
+    mode = m; apiBase = base || '';
+    const pill = $('#mode-pill');
+    pill.classList.toggle('live', m === 'api');
+    pill.querySelector('span').textContent = m === 'api' ? 'Live API' : 'Demo data';
+    $('#conn-text').textContent = m === 'api'
+      ? 'Connected to the Velvet API' + (apiBase ? ' at ' + apiBase : '') + '. Signups, matches, messages and moderator decisions are saved in the database.'
+      : 'Demo mode: everything runs in this page with fictional data and resets on reload. To use the real database, run the server (see server/README.md) and open http://localhost:3000, or enter its address here.';
+    $('#conn-demo').hidden = m !== 'api';
+    $('#mod-sub').textContent = m === 'api'
+      ? 'Live cases from screening and member reports. Compare the record against the verified identity before deciding.'
+      : 'Fictional example cases. Compare the record against the verified identity before deciding.';
+    if (m === 'demo') { token = modToken = meId = null; ['velvet.token','velvet.modToken','velvet.meId'].forEach(k => session.set(k, null)); cases = demoCases(); }
+    deck = null; currentMatch = null;
+    renderMod();
+  }
+
+  $('#conn-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const base = $('#conn-url').value.trim().replace(/\/+$/, '');
+    $('#conn-err').textContent = '';
+    if (!/^https?:\/\//.test(base)) { $('#conn-err').textContent = 'Enter a full address starting with http:// or https://'; return; }
+    if (!(await healthy(base))) { $('#conn-err').textContent = "Couldn't reach the API at that address. Check the server is running and CORS_ORIGIN includes this page."; return; }
+    local.set('velvet.apiBase', base); setMode('api', base); log('connected to ' + base, 'ok'); go('welcome');
   });
+  $('#conn-demo').addEventListener('click', () => { local.set('velvet.apiBase', null); setMode('demo'); log('switched to demo data', 't'); go('welcome'); });
+
+  // ---------- scenario ----------
+  $('#scen').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    scenario = b.dataset.s;
+    document.querySelectorAll('#scen button').forEach(x => x.setAttribute('aria-pressed', x === b));
+    log('scenario set: ' + scenario, 't');
+  });
+  function resetScenario(){ scenario = 'clear'; document.querySelectorAll('#scen button').forEach(x => x.setAttribute('aria-pressed', x.dataset.s === 'clear')); }
 
   // ---------- tabs ----------
-  document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>{
-    document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected', x===b));
-    document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on', v.id==='view-'+b.dataset.view));
+  document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-selected', x === b));
+    document.querySelectorAll('.view').forEach(v => v.classList.toggle('on', v.id === 'view-' + b.dataset.view));
+    if (b.dataset.view === 'mod') renderMod();
   }));
 
+  // ---------- helpers ----------
+  const age = d => { if (!d) return 0; const b = new Date(d + 'T00:00:00'), n = new Date(); let a = n.getFullYear() - b.getFullYear(); if (n < new Date(n.getFullYear(), b.getMonth(), b.getDate())) a--; return a; };
+  const steps = n => '<div class="stepper">' + [1,2,3,4].map(i => '<i class="' + (i <= n ? 'done' : '') + '"></i>').join('') + '</div>';
+  const errP = '<p class="err" role="alert"></p>';
+  function showErr(m){ const el = screen.querySelector('.err'); if (el) el.textContent = m; }
+  function act(fn){
+    return async e => {
+      const b = e.currentTarget;
+      if (e.type === 'submit') e.preventDefault();
+      const btn = b.tagName === 'FORM' ? b.querySelector('button[type=submit],button:not([type])') : b;
+      if (btn && btn.disabled) return;
+      if (btn) btn.disabled = true;
+      showErr('');
+      try { await fn(e); }
+      catch (err) { showErr(err.message); log(err.message, 'b'); if (err.status === 401) signOut(false); }
+      finally { if (btn && document.body.contains(btn)) btn.disabled = false; }
+    };
+  }
+  function signOut(goHome = true){
+    token = meId = null; session.set('velvet.token', null); session.set('velvet.meId', null);
+    deck = null; currentMatch = null;
+    if (goHome) { log('signed out', 't'); go('welcome'); }
+  }
+  const topBar = title => '<div class="topline"><div class="s-title" style="font-size:26px">' + title + '</div><div class="row" style="gap:6px">' +
+    '<button class="mini" data-go="discover">Discover</button><button class="mini" data-go="matches">Matches</button>' +
+    (mode === 'api' ? '<button class="mini" id="signout">Sign out</button>' : '') + '</div></div>';
+  const card = p => '<div class="card"><div class="pic" style="background:' + gFor(p.id) + '">' + esc((p.display_name || '?')[0]) + '<span class="vb chip">✓ ID verified</span></div>' +
+    '<div class="info"><h3>' + esc(p.display_name) + ', ' + esc(p.age) + '</h3><div class="s-sub">' + esc(p.location || '') + '</div><div>' + esc(p.bio || '') + '</div>' +
+    '<div class="tags">' + (p.interests || []).map(t => '<span>' + esc(t) + '</span>').join('') + '</div></div></div>';
+
+  // Decide where a signed-in member belongs.
+  async function routeByStatus(){
+    const me = await api('/api/auth/me');
+    meId = me.id; session.set('velvet.meId', meId);
+    if (me.role === 'moderator') { signOut(false); throw new Error('That is a moderator account. Use the Moderator queue tab.'); }
+    if (me.status === 'pending') return go(me.id_document === 'passed' && me.selfie_liveness === 'passed' ? 'consent' : 'verify');
+    if (me.status === 'under_review') { reviewKind = 'pending'; return go('review'); }
+    return go(me.display_name ? 'discover' : 'profile');
+  }
+
   // ---------- screens ----------
-  let current = 'welcome';
-  let appState = 'pending';
-  const steps = n => `<div class="stepper">${[1,2,3,4].map(i=>`<i class="${i<=n?'done':''}"></i>`).join('')}</div>`;
-
   const S = {
-    welcome(){ return `
-      <div class="spacer"></div>
-      <div class="s-title">Where sparks are <em>safe</em> to fly.</div>
-      <p class="s-sub">Every member on Velvet is ID-verified and safety-screened before they can see or message anyone.</p>
-      <div class="tags"><span>Verified IDs</span><span>Live selfies</span><span>Human review</span></div>
-      <div class="spacer"></div>
-      <button class="btn" data-go="account">Create account</button>
-      <button class="btn ghost" data-go="discover" data-skip="1">Skip to matching (demo)</button>`; },
+    welcome(){ reviewKind = null; return '<div class="spacer"></div>' +
+      '<div class="s-title">Where sparks are <em>safe</em> to fly.</div>' +
+      '<p class="s-sub">Every member on Velvet is ID-verified and safety-screened before they can see or message anyone.</p>' +
+      '<div class="tags"><span>Verified IDs</span><span>Live selfies</span><span>Human review</span></div><div class="spacer"></div>' + errP +
+      '<button class="btn" data-go="account">Create account</button>' +
+      (mode === 'api' ? '<button class="btn ghost" data-go="signin">Sign in</button>' : '<button class="btn ghost" data-go="discover">Skip to matching (demo)</button>'); },
 
-    account(){ return `
-      ${steps(1)}
-      <div class="s-title">About you</div>
-      <p class="s-sub">Use your legal name. It stays private; only your first name shows on your profile.</p>
-      <div class="field"><label for="f-name">Legal name</label><input id="f-name" value="${user.name}" placeholder="As it appears on your ID"></div>
-      <div class="field"><label for="f-dob">Date of birth</label><input id="f-dob" type="date" value="${user.dob}"></div>
-      <div class="field"><label for="f-email">Email</label><input id="f-email" type="email" value="${user.email}" placeholder="you@example.com"></div>
-      <button class="linkish" id="fill">Fill with sample details</button>
-      <div class="spacer"></div>
-      <button class="btn" id="acct-next">Continue</button>`; },
+    signin(){ return '<div class="s-title">Welcome <em>back</em></div>' +
+      '<form id="signin-form" class="checks">' +
+      '<div class="field"><label for="si-email">Email</label><input id="si-email" type="email" autocomplete="username" required></div>' +
+      '<div class="field"><label for="si-pass">Password</label><input id="si-pass" type="password" autocomplete="current-password" required></div>' +
+      errP + '<button class="btn" type="submit">Sign in</button></form>' +
+      '<div class="hint">Seeded demo members: amara@example.com, kai@example.com, simone@example.com, devon@example.com. Password: velvet-demo-pass</div>' +
+      '<div class="spacer"></div><button class="btn ghost" data-go="welcome">Back</button>'; },
 
-    verify(){ return `
-      ${steps(2)}
-      <div class="s-title">Verify it's <em>you</em></div>
-      <p class="s-sub">We check your ID is real and that your selfie matches it. Images are deleted once verification finishes.</p>
-      <div class="upload ${user.id?'ok':''}"><div class="ic">🪪</div><div class="t">Government ID<small>${user.id?'Uploaded ✓':'Passport, driver’s licence or national ID'}</small></div>
-        <label class="linkish" for="up-id" style="margin:0">${user.id?'Replace':'Upload'}</label><input id="up-id" type="file" accept="image/*" hidden></div>
-      <div class="upload ${user.selfie?'ok':''}"><div class="ic">🤳</div><div class="t">Live selfie<small>${user.selfie?'Captured ✓':'Turn your head slowly when prompted'}</small></div>
-        <label class="linkish" for="up-selfie" style="margin:0">${user.selfie?'Replace':'Upload'}</label><input id="up-selfie" type="file" accept="image/*" hidden></div>
-      <button class="linkish" id="sample-up">Use sample images (demo)</button>
-      <div class="spacer"></div>
-      <button class="btn" data-go="consent" ${user.id&&user.selfie?'':'disabled'}>Continue</button>`; },
+    account(){ return steps(1) + '<div class="s-title">About you</div>' +
+      '<p class="s-sub">Use your legal name. It stays private; only your first name shows on your profile.</p>' +
+      '<div class="field"><label for="f-name">Legal name</label><input id="f-name" value="' + esc(user.name) + '" placeholder="As it appears on your ID" autocomplete="name"></div>' +
+      '<div class="field"><label for="f-dob">Date of birth</label><input id="f-dob" type="date" value="' + esc(user.dob) + '"></div>' +
+      '<div class="field"><label for="f-email">Email</label><input id="f-email" type="email" value="' + esc(user.email) + '" placeholder="you@example.com" autocomplete="email"></div>' +
+      (mode === 'api' ? '<div class="field"><label for="f-pass">Password (10+ characters)</label><input id="f-pass" type="password" value="' + esc(user.password) + '" autocomplete="new-password"></div>' : '') +
+      '<button class="linkish" id="fill">Fill with sample details</button>' + errP +
+      '<div class="spacer"></div><button class="btn" id="acct-next">Continue</button>'; },
 
-    consent(){ return `
-      ${steps(3)}
-      <div class="s-title">Safety screening</div>
-      <p class="s-sub">To keep members safe, we check your verified name and date of birth against:</p>
-      <div class="checks">
-        <div class="check"><span class="dot" style="background:var(--gold)"></span>Sex-offender registries</div>
-        <div class="check"><span class="dot" style="background:var(--gold)"></span>Public wanted notices &amp; sanctions lists</div>
-        <div class="check"><span class="dot" style="background:var(--gold)"></span>Serious violent-crime records (where lawful)</div>
-      </div>
-      <label class="consent" for="c-ok"><input type="checkbox" id="c-ok" ${user.consent?'checked':''}><span>I agree to this screening. If something comes up, a person will review it, and I can dispute the result.</span></label>
-      <div class="spacer"></div>
-      <button class="btn" id="run" ${user.consent?'':'disabled'}>Run checks</button>`; },
+    verify(){ return steps(2) + '<div class="s-title">Verify it\'s <em>you</em></div>' +
+      '<p class="s-sub">We check your ID is real and that your selfie matches it. Images are deleted once verification finishes.</p>' +
+      '<div class="upload ' + (user.id ? 'ok' : '') + '"><div class="ic">🪪</div><div class="t">Government ID<small>' + (user.id ? 'Uploaded ✓' : 'Passport, driver’s licence or national ID') + '</small></div>' +
+      '<label class="linkish" for="up-id" style="margin:0">' + (user.id ? 'Replace' : 'Upload') + '</label><input id="up-id" type="file" accept="image/*" hidden></div>' +
+      '<div class="upload ' + (user.selfie ? 'ok' : '') + '"><div class="ic">🤳</div><div class="t">Live selfie<small>' + (user.selfie ? 'Captured ✓' : 'Turn your head slowly when prompted') + '</small></div>' +
+      '<label class="linkish" for="up-selfie" style="margin:0">' + (user.selfie ? 'Replace' : 'Upload') + '</label><input id="up-selfie" type="file" accept="image/*" hidden></div>' +
+      '<button class="linkish" id="sample-up">Use sample images (demo)</button>' + errP +
+      '<div class="spacer"></div><button class="btn" id="verify-next" ' + (user.id && user.selfie ? '' : 'disabled') + '>Continue</button>'; },
 
-    checking(){ return `
-      ${steps(4)}
-      <div class="s-title">Checking…</div>
-      <p class="s-sub">This usually takes under a minute.</p>
-      <div class="checks" id="checks">
-        ${['ID document is genuine','Selfie matches ID photo','Sex-offender registries','Wanted notices & sanctions','Criminal records'].map((t,i)=>`<div class="check" data-i="${i}"><span class="dot"></span>${t}<span class="r">Queued</span></div>`).join('')}
-      </div>`; },
+    consent(){ return steps(3) + '<div class="s-title">Safety screening</div>' +
+      '<p class="s-sub">To keep members safe, we check your verified name and date of birth against:</p>' +
+      '<div class="checks">' + ['Sex-offender registries','Public wanted notices &amp; sanctions lists','Serious violent-crime records (where lawful)'].map(t => '<div class="check"><span class="dot" style="background:var(--gold)"></span>' + t + '</div>').join('') + '</div>' +
+      '<label class="consent" for="c-ok"><input type="checkbox" id="c-ok" ' + (user.consent ? 'checked' : '') + '><span>I agree to this screening. If something comes up, a person will review it, and I can dispute the result.</span></label>' + errP +
+      '<div class="spacer"></div><button class="btn" id="run" ' + (user.consent ? '' : 'disabled') + '>Run checks</button>'; },
+
+    checking(){ return steps(4) + '<div class="s-title">Checking…</div><p class="s-sub">This usually takes under a minute.</p>' +
+      '<div class="checks" id="checks">' + ['Sex-offender registries','Wanted notices & sanctions','Criminal records'].map((t, i) => '<div class="check" data-i="' + i + '"><span class="dot"></span>' + t + '<span class="r">Queued</span></div>').join('') + '</div>' + errP; },
 
     review(){
-      if(appState==='cleared') return `
-        <div class="spacer"></div>
-        <div class="notice ok"><b>You're verified.</b><br>Our review found nothing that affects your account. Thanks for your patience.</div>
-        <div class="spacer"></div><button class="btn" data-go="profile">Set up profile</button>`;
-      if(appState==='suspended') return `
-        <div class="spacer"></div>
-        <div class="s-title">Account not approved</div>
-        <div class="notice" style="border-left-color:var(--bad)">We can't approve this account under our safety rules. If you think this is wrong, you can request the record used and dispute it.</div>
-        <div class="spacer"></div><button class="btn ghost" data-go="welcome">Back to start</button>`;
-      if(scenario==='mismatch') return `
-        <div class="spacer"></div>
-        <div class="s-title">Let's try that selfie again</div>
-        <div class="notice">Your selfie didn't match your ID photo clearly enough. Good light and no sunglasses help.</div>
-        <div class="spacer"></div><button class="btn" id="retry-selfie">Retake selfie</button>`;
-      return `
-        <div class="spacer"></div>
-        <div class="s-title">Almost <em>there</em></div>
-        <div class="notice">Your account needs a quick manual review before it goes live. This usually takes up to 24 hours. We'll email you.</div>
-        <p class="s-sub">Demo: open the <b>Moderator queue</b> tab to see this case and decide it.</p>
-        <div class="spacer"></div><button class="btn ghost" id="to-mod">Open moderator queue</button>`;
-    },
+      if (reviewKind === 'mismatch') return '<div class="spacer"></div><div class="s-title">Let\'s try that selfie again</div>' +
+        '<div class="notice">Your selfie didn\'t match your ID photo clearly enough. Good light and no sunglasses help.</div><div class="spacer"></div><button class="btn" id="retry-selfie">Retake selfie</button>';
+      if (mode === 'demo' && appState === 'cleared') return '<div class="spacer"></div><div class="notice ok"><b>You\'re verified.</b><br>Our review found nothing that affects your account. Thanks for your patience.</div><div class="spacer"></div><button class="btn" data-go="profile">Set up profile</button>';
+      if (reviewKind === 'suspended' || (mode === 'demo' && appState === 'suspended')) return '<div class="spacer"></div><div class="s-title">Account not approved</div><div class="notice" style="border-left-color:var(--bad)">We can\'t approve this account under our safety rules. If you think this is wrong, you can request the record used and dispute it.</div><div class="spacer"></div><button class="btn ghost" data-go="welcome">Back to start</button>';
+      return '<div class="spacer"></div><div class="s-title">Almost <em>there</em></div>' +
+        '<div class="notice">Your account needs a quick manual review before it goes live. This usually takes up to 24 hours. We\'ll email you.</div>' +
+        '<p class="s-sub">Demo: open the <b>Moderator queue</b> tab to decide this case' + (mode === 'api' ? ' (sign in as mod@example.com), then check your status here.' : '.') + '</p>' + errP +
+        '<div class="spacer"></div>' + (mode === 'api' ? '<button class="btn" id="check-status">Check my status</button>' : '') +
+        '<button class="btn ghost" id="to-mod">Open moderator queue</button>' + (mode === 'api' ? '<button class="linkish" id="signout">Sign out</button>' : ''); },
 
-    profile(){ return `
-      <div class="s-title">Your profile</div>
-      <div class="card"><div class="pic" style="background:linear-gradient(160deg,#d63a5c,#2a0b17)">${(user.name||'T')[0]}<span class="vb chip">✓ ID verified</span></div>
-        <div class="info"><h3>${(user.name||'Taylor').split(' ')[0]}, ${age(user.dob)||28}</h3><div class="s-sub">Kingstown</div>
-        <div class="tags"><span>Tech</span><span>Beach</span><span>Music</span></div></div></div>
-      <div class="spacer"></div><button class="btn" data-go="discover">Start matching</button>`; },
+    profile(){ const first = (user.name || '').split(' ')[0];
+      return '<div class="s-title">Your <em>profile</em></div><p class="s-sub">This is what other verified members see.</p>' +
+      '<form id="profile-form" class="checks">' +
+      '<div class="field"><label for="p-name">First name</label><input id="p-name" value="' + esc(first) + '" maxlength="40" required></div>' +
+      '<div class="field"><label for="p-loc">Area</label><input id="p-loc" value="Kingstown" maxlength="80"></div>' +
+      '<div class="field"><label for="p-bio">About you</label><textarea id="p-bio" rows="3" maxlength="500">Here for slow dances and honest conversation.</textarea></div>' +
+      '<div class="field"><label for="p-tags">Interests (comma separated)</label><input id="p-tags" value="Music, Beach, Tech"></div>' +
+      errP + '<button class="btn" type="submit">Save and start matching</button></form>'; },
 
-    discover(){
-      const p = profiles[deckIndex % profiles.length];
-      return `
-      <div class="row" style="justify-content:space-between"><div class="s-title" style="font-size:26px">Discover</div><span class="chip gold">All members verified</span></div>
-      <div class="card"><div class="pic" style="background:${p.g}">${p.n[0]}<span class="vb chip">✓ ID verified</span></div>
-        <div class="info"><h3>${p.n}, ${p.a}</h3><div class="s-sub">${p.place}</div><div>${p.bio}</div><div class="tags">${p.tags.map(t=>`<span>${t}</span>`).join('')}</div></div></div>
-      <div class="actions"><button class="round" id="pass" aria-label="Pass">✕</button><button class="round like" id="like" aria-label="Like">♥</button></div>`; },
+    async discover(){
+      let p;
+      if (mode === 'api') { if (!deck) deck = await api('/api/discover'); p = deck[0]; }
+      else p = demoProfiles[demoIndex % demoProfiles.length];
+      if (!p) return topBar('Discover') + '<div class="spacer"></div><div class="notice ok">You\'ve seen everyone for now. New verified members show up here as they join.</div><div class="spacer"></div><button class="btn" id="refresh">Refresh</button><button class="btn ghost" data-go="matches">Your matches</button>';
+      return topBar('Discover') + '<span class="chip gold" style="align-self:flex-start">All members verified</span>' + card(p) + errP +
+        '<div class="actions"><button class="round" id="pass" aria-label="Pass">✕</button><button class="round like" id="like" aria-label="Like">♥</button></div>'; },
 
-    match(){
-      const p = profiles[deckIndex % profiles.length];
-      return `
-      <div class="spacer"></div>
-      <div class="s-title" style="text-align:center">It's a <em>match</em></div>
-      <p class="s-sub" style="text-align:center">You and ${p.n} like each other. Both of you passed ID and safety checks.</p>
-      <div class="spacer"></div>
-      <button class="btn" data-go="chat">Send a message</button>
-      <button class="btn ghost" id="keep">Keep swiping</button>`; },
+    match(){ return '<div class="spacer"></div><div class="s-title" style="text-align:center">It\'s a <em>match</em></div>' +
+      '<p class="s-sub" style="text-align:center">You and ' + esc(currentMatch.name) + ' like each other. Both of you passed ID and safety checks.</p>' +
+      '<div class="spacer"></div><button class="btn" data-go="chat">Send a message</button><button class="btn ghost" data-go="discover">Keep swiping</button>'; },
 
-    chat(){
-      const p = profiles[deckIndex % profiles.length];
-      if(!chat.length) chat = [{w:'sys',t:'You matched with '+p.n+'. Keep chats on Velvet until you feel comfortable.'},{w:'them',t:'Hey you 😊 that profile photo is something else.'}];
-      return `
-      <div class="row"><div class="ic" style="width:40px;height:40px;border-radius:50%;background:${p.g};display:grid;place-items:center;font-family:var(--display);font-size:22px">${p.n[0]}</div>
-        <div><b>${p.n}</b> <span class="chip" style="margin-left:4px">✓</span><div class="s-sub" style="font-size:12px">${p.place}</div></div></div>
-      <div class="safetybar"><button id="sv-video">Video call</button><button id="sv-date">Share my date</button><button id="sv-report">Report / block</button></div>
-      <div id="sheet"></div>
-      <div class="chat">${chat.map(m=>`<div class="msg ${m.w}">${m.t}</div>`).join('')}</div>
-      <form class="row" id="send"><input id="msg" aria-label="Message" placeholder="Say something sweet…" style="flex:1;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:10px 14px"><button class="round like" style="width:44px;height:44px;font-size:16px" aria-label="Send">➤</button></form>`; }
+    async matches(){
+      const list = matchList = mode === 'api'
+        ? (await api('/api/matches')).map(m => ({id:m.id, name:m.display_name, place:m.location, uid:m.user_id}))
+        : demoMatches.slice();
+      return topBar('Matches') + (list.length
+        ? '<div class="mlist">' + list.map((m, i) => '<button class="mrow" data-i="' + i + '"><span class="av" style="background:' + gFor(m.uid || m.id) + '">' + esc((m.name || '?')[0]) + '</span><span><b>' + esc(m.name) + '</b> <span class="chip">✓</span><br><span class="s-sub" style="font-size:12px">' + esc(m.place || '') + '</span></span></button>').join('') + '</div>'
+        : '<div class="notice">No matches yet. Like someone and if they like you back, they\'ll appear here.</div>') + errP; },
+
+    async chat(){
+      const m = currentMatch;
+      return '<div class="topline"><div class="row"><span class="av" style="background:' + gFor(m.uid || m.id) + '">' + esc(m.name[0]) + '</span><div><b>' + esc(m.name) + '</b> <span class="chip">✓</span><div class="s-sub" style="font-size:12px">' + esc(m.place || '') + '</div></div></div><button class="mini" data-go="matches">Back</button></div>' +
+        '<div class="safetybar"><button id="sv-video">Video call</button><button id="sv-date">Share my date</button><button id="sv-report">Report / block</button></div>' +
+        '<div id="sheet"></div><div class="chat" id="chatlog">' + await chatHtml() + '</div>' +
+        '<div id="chatwarn"></div>' + errP +
+        '<form class="row" id="send"><input id="msg" aria-label="Message" maxlength="2000" placeholder="Say something sweet…" style="flex:1;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:10px 14px"><button class="round like" type="submit" style="width:44px;height:44px;font-size:16px" aria-label="Send">➤</button></form>'; }
   };
 
-  function age(d){ if(!d) return 0; const b=new Date(d), n=new Date(); let a=n.getFullYear()-b.getFullYear(); if(n<new Date(n.getFullYear(),b.getMonth(),b.getDate())) a--; return a; }
+  async function chatHtml(){
+    const m = currentMatch;
+    let msgs;
+    if (mode === 'api') {
+      msgs = (await api('/api/matches/' + m.id + '/messages')).map(x => ({w: x.sender_id === meId ? 'me' : 'them', t: x.body}));
+    } else {
+      demoChats[m.id] = demoChats[m.id] || [{w:'them', t:'Hey you 😊 that profile photo is something else.'}];
+      msgs = demoChats[m.id];
+    }
+    return '<div class="msg sys">You matched with ' + esc(m.name) + '. Keep chats on Velvet until you feel comfortable.</div>' +
+      msgs.map(x => '<div class="msg ' + x.w + '">' + esc(x.t) + '</div>').join('');
+  }
+  async function refreshChat(){
+    if (current !== 'chat' || !currentMatch) return;
+    try { const el = $('#chatlog'); if (el) { const h = await chatHtml(); if (el.innerHTML !== h) { el.innerHTML = h; screen.scrollTop = screen.scrollHeight; } } }
+    catch (e) { if (e.status === 404) { log('match no longer available', 'w'); go('matches'); } }
+  }
 
-  function go(name){ current=name; screen.innerHTML = S[name](); screen.scrollTop=0; bind(); }
+  async function go(name){
+    current = name; const seq = ++renderSeq;
+    clearInterval(pollTimer);
+    let html;
+    try { html = await S[name](); }
+    catch (e) {
+      log(e.message, 'b');
+      if (e.status === 401 || e.status === 403) { signOut(false); html = S.welcome(); setTimeout(() => showErr(e.message), 0); }
+      else html = '<div class="spacer"></div><div class="notice" style="border-left-color:var(--bad)">' + esc(e.message) + '</div><div class="spacer"></div><button class="btn ghost" data-go="welcome">Back to start</button>';
+    }
+    if (seq !== renderSeq) return;
+    screen.innerHTML = html; screen.scrollTop = name === 'chat' ? screen.scrollHeight : 0; bind();
+    if (name === 'chat' && mode === 'api') pollTimer = setInterval(refreshChat, 4000);
+  }
 
+  // ---------- behaviour ----------
   function bind(){
-    screen.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>{ if(b.dataset.skip) log('demo: skipped signup','t'); go(b.dataset.go); }));
-    const on = (id,ev,fn)=>{ const el=screen.querySelector('#'+id); if(el) el.addEventListener(ev,fn); };
+    screen.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => go(b.dataset.go)));
+    const on = (id, ev, fn) => { const el = screen.querySelector('#' + id); if (el) el.addEventListener(ev, fn); };
 
-    on('fill','click',()=>{ user.name='Taylor Morgan'; user.dob='1996-05-29'; user.email='taylor@example.com'; go('account'); });
-    on('acct-next','click',()=>{
-      user.name=$('#f-name').value.trim(); user.dob=$('#f-dob').value; user.email=$('#f-email').value.trim();
-      if(!user.name||!user.dob){ $('#f-name').focus(); $('#f-name').placeholder='Enter your legal name to continue'; return; }
-      if(age(user.dob)<18){ screen.querySelector('.s-sub').textContent='You must be 18 or older to join Velvet.'; screen.querySelector('.s-sub').style.color='var(--bad)'; log('signup blocked: under 18','b'); return; }
-      log(`account created for "${user.name}" (age ${age(user.dob)})`,'ok'); go('verify');
+    on('signout', 'click', () => signOut());
+    on('signin-form', 'submit', act(async () => {
+      const r = await api('/api/auth/login', {method:'POST', auth:null, body:{email:$('#si-email').value.trim(), password:$('#si-pass').value}});
+      token = r.token; session.set('velvet.token', token); log('signed in', 'ok');
+      await routeByStatus();
+    }));
+
+    on('fill', 'click', () => {
+      const n = Math.floor(Math.random() * 9000 + 1000);
+      user.name = 'Taylor Morgan'; user.dob = '1996-05-29'; user.email = 'taylor' + n + '@example.com'; user.password = 'velvet-demo-pass';
+      go('account');
     });
-    on('up-id','change',e=>{ if(e.target.files.length){ user.id=true; log('ID image received → sent to verification provider','t'); go('verify'); }});
-    on('up-selfie','change',e=>{ if(e.target.files.length){ user.selfie=true; log('selfie received → liveness check','t'); go('verify'); }});
-    on('sample-up','click',()=>{ user.id=user.selfie=true; log('demo: sample ID + selfie used','t'); go('verify'); });
-    on('c-ok','change',e=>{ user.consent=e.target.checked; screen.querySelector('#run').disabled=!user.consent; });
-    on('run','click',()=>{ log('screening consent recorded','ok'); go('checking'); runChecks(); });
-    on('retry-selfie','click',()=>{ user.selfie=false; scenario='clear'; document.querySelectorAll('#scen button').forEach(x=>x.setAttribute('aria-pressed', x.dataset.s==='clear')); log('selfie retake requested; scenario reset to clear','t'); go('verify'); });
-    on('to-mod','click',()=>$('#tab-mod').click());
-    on('like','click',()=>{ log(`liked ${profiles[deckIndex%profiles.length].n}`,'t'); go('match'); });
-    on('pass','click',()=>{ deckIndex++; go('discover'); });
-    on('keep','click',()=>{ deckIndex++; chat=[]; go('discover'); });
-    on('send','submit',e=>{ e.preventDefault(); const v=$('#msg').value.trim(); if(!v) return;
-      const unsafe = /(cashapp|western union|send money|gift card|whatsapp me|\+?\d{7,})/i.test(v);
-      chat.push({w:'me',t:v.replace(/</g,'&lt;')});
-      if(unsafe){ chat.push({w:'sys',t:'Heads up: sharing numbers or money requests early is a common scam pattern. Take your time.'}); log('message safety nudge shown','w'); }
-      go('chat'); });
-    on('sv-video','click',()=>sheet(`<b>Video call before you meet</b><span class="s-sub">A quick call confirms the person matches their verified profile. (Calls need a real backend; this is a placeholder.)</span><button class="btn ghost" data-close>Close</button>`));
-    on('sv-date','click',()=>sheet(`<b>Share my date</b><div class="field"><label for="d-where">Where</label><input id="d-where" placeholder="e.g. Young Island restaurant"></div><div class="field"><label for="d-when">When</label><input id="d-when" type="datetime-local"></div><div class="field"><label for="d-who">Trusted contact</label><input id="d-who" placeholder="Name or phone"></div><button class="btn" id="d-save">Share plan</button>`));
-    on('sv-report','click',()=>sheet(`<b>Report or block</b><div class="field"><label for="r-why">What happened?</label><select id="r-why"><option>Feels unsafe or threatening</option><option>Asked for money</option><option>Fake profile</option><option>Underage</option><option>Something else</option></select></div><button class="btn" id="r-send">Report &amp; block</button><span class="s-sub">They won't be told who reported them.</span>`));
+    on('acct-next', 'click', act(async () => {
+      user.name = $('#f-name').value.trim(); user.dob = $('#f-dob').value; user.email = $('#f-email').value.trim();
+      if ($('#f-pass')) user.password = $('#f-pass').value;
+      if (!user.name || !user.dob) throw new Error('Enter your legal name and date of birth to continue.');
+      if (age(user.dob) < 18) { log('signup blocked: under 18', 'b'); throw new Error('You must be 18 or older to join Velvet.'); }
+      if (mode === 'api') {
+        const r = await api('/api/auth/register', {method:'POST', auth:null, body:{email:user.email, password:user.password, legalName:user.name, dateOfBirth:user.dob}});
+        token = r.token; meId = r.user.id; session.set('velvet.token', token); session.set('velvet.meId', meId);
+      }
+      log('account created (age ' + age(user.dob) + ')', 'ok');
+      user.id = user.selfie = user.consent = false;
+      go('verify');
+    }));
+
+    on('up-id', 'change', e => { if (e.target.files.length) { user.id = true; log('ID image received → verification provider', 't'); go('verify'); } });
+    on('up-selfie', 'change', e => { if (e.target.files.length) { user.selfie = true; log('selfie received → liveness check', 't'); go('verify'); } });
+    on('sample-up', 'click', () => { user.id = user.selfie = true; log('sample ID + selfie used', 't'); go('verify'); });
+    on('verify-next', 'click', act(async () => {
+      const selfieOk = scenario !== 'mismatch';
+      if (mode === 'api') await api('/api/onboarding/verification', {method:'POST', body:{providerRef:'demo-' + Date.now(), idDocument:'passed', selfieLiveness: selfieOk ? 'passed' : 'failed'}});
+      if (!selfieOk) { log('liveness failed → retake requested', 'w'); reviewKind = 'mismatch'; return go('review'); }
+      log('ID + selfie verified', 'ok'); go('consent');
+    }));
+    on('retry-selfie', 'click', () => { user.selfie = false; reviewKind = null; resetScenario(); log('selfie retake; scenario reset to clear', 't'); go('verify'); });
+
+    on('c-ok', 'change', e => { user.consent = e.target.checked; screen.querySelector('#run').disabled = !user.consent; });
+    on('run', 'click', act(async () => {
+      log('screening consent recorded', 'ok');
+      let res = null;
+      if (mode === 'api') res = await api('/api/onboarding/screening', {method:'POST', body:{consent:true, scenario: scenario === 'warrant' ? 'watchlist' : scenario === 'registry' ? 'registry' : 'clear'}});
+      const held = mode === 'api' ? res.status !== 'active' : (scenario === 'registry' || scenario === 'warrant');
+      await go('checking');
+      animateChecks(held ? (scenario === 'warrant' ? 1 : 0) : -1, () => afterScreening(held));
+    }));
+    on('check-status', 'click', act(async () => {
+      let me;
+      try { me = await api('/api/auth/me'); }
+      catch (e) { if (e.status !== 403) throw e; log('status: suspended', 'b'); token = null; session.set('velvet.token', null); reviewKind = 'suspended'; return go('review'); }
+      if (me.status === 'under_review') { showErr('Still under review. A moderator hasn\'t decided yet.'); return; }
+      log('status: ' + me.status, me.status === 'active' ? 'ok' : 'w');
+      reviewKind = null; await routeByStatus();
+    }));
+    on('to-mod', 'click', () => $('#tab-mod').click());
+
+    on('profile-form', 'submit', act(async () => {
+      const body = {displayName:$('#p-name').value.trim(), location:$('#p-loc').value.trim(), bio:$('#p-bio').value.trim(),
+        interests:$('#p-tags').value.split(',').map(s => s.trim()).filter(Boolean).slice(0, 10)};
+      if (mode === 'api') await api('/api/onboarding/profile', {method:'PUT', body});
+      log('profile saved', 'ok'); deck = null; go('discover');
+    }));
+
+    on('refresh', 'click', () => { deck = null; go('discover'); });
+    on('pass', 'click', () => { if (mode === 'api') deck.shift(); else demoIndex++; go('discover'); });
+    on('like', 'click', act(async () => {
+      if (mode === 'api') {
+        const p = deck[0];
+        const r = await api('/api/likes/' + p.id, {method:'POST'});
+        deck.shift();
+        log('liked ' + p.display_name + (r.matched ? ' → match!' : ''), r.matched ? 'ok' : 't');
+        if (!r.matched) return go('discover');
+        currentMatch = {id:r.matchId, name:p.display_name, place:p.location, uid:p.id};
+      } else {
+        const p = demoProfiles[demoIndex % demoProfiles.length]; demoIndex++;
+        currentMatch = {id:'m-' + p.id, name:p.display_name, place:p.location, uid:p.id};
+        if (!demoMatches.some(m => m.id === currentMatch.id)) demoMatches.unshift(currentMatch);
+        log('liked ' + p.display_name + ' → match (demo)', 'ok');
+      }
+      go('match');
+    }));
+
+    screen.querySelectorAll('.mrow').forEach(b => b.addEventListener('click', () => {
+      currentMatch = matchList[+b.dataset.i]; chatWarning = ''; go('chat');
+    }));
+
+    on('send', 'submit', act(async () => {
+      const input = $('#msg'); const v = input.value.trim(); if (!v) return;
+      let warning = null;
+      if (mode === 'api') {
+        const r = await api('/api/matches/' + currentMatch.id + '/messages', {method:'POST', body:{body:v}});
+        warning = r.warning;
+      } else {
+        demoChats[currentMatch.id].push({w:'me', t:v});
+        if (/(send|lend|wire).{0,20}(money|cash)|western union|gift ?card|cash ?app|whats ?app|\+?\d[\d\s-]{6,}\d/i.test(v)) warning = 'Sharing contact details or talking about money early is a common scam pattern. Take your time.';
+      }
+      input.value = '';
+      $('#chatwarn').innerHTML = warning ? '<div class="notice">' + esc(warning) + '</div>' : '';
+      if (warning) log('message safety warning shown', 'w');
+      await refreshChat(); input.focus();
+    }));
+    on('sv-video', 'click', () => sheet('<b>Video call before you meet</b><span class="s-sub">A quick call confirms the person matches their verified profile. (Calls are on the roadmap.)</span><button class="btn ghost" data-close>Close</button>'));
+    on('sv-date', 'click', () => sheet('<b>Share my date</b><div class="field"><label for="d-where">Where</label><input id="d-where" placeholder="e.g. a restaurant in Villa"></div><div class="field"><label for="d-when">When</label><input id="d-when" type="datetime-local"></div><div class="field"><label for="d-who">Trusted contact</label><input id="d-who" placeholder="Name or phone"></div><button class="btn" id="d-save">Share plan</button><button class="btn ghost" data-close>Cancel</button>'));
+    on('sv-report', 'click', () => sheet('<b>Report or block</b><div class="field"><label for="r-why">What happened?</label><select id="r-why"><option value="unsafe">Feels unsafe or threatening</option><option value="money_request">Asked for money</option><option value="fake_profile">Fake profile</option><option value="underage">Seems under 18</option><option value="other">Something else</option></select></div><div class="field"><label for="r-details">Details (optional)</label><textarea id="r-details" rows="2" maxlength="1000"></textarea></div><button class="btn" id="r-send">Report &amp; block</button><button class="btn ghost" id="b-only">Just block</button><span class="s-sub">They won\'t be told who reported them.</span>'));
   }
 
   function sheet(html){
-    const s=$('#sheet'); s.innerHTML=`<div class="sheet">${html}</div>`;
-    s.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>s.innerHTML='');
-    const ds=s.querySelector('#d-save'); if(ds) ds.onclick=()=>{ log(`date plan shared with ${$('#d-who').value||'trusted contact'}`,'ok'); s.innerHTML=`<div class="notice ok">Plan saved for ${$('#d-who').value||'your contact'}. In the real app they'd get a message with the place and time, plus a check-in reminder.</div>`; };
-    const rs=s.querySelector('#r-send'); if(rs) rs.onclick=()=>{
-      const p=profiles[deckIndex%profiles.length];
-      cases.unshift({id:'C-'+(1044+cases.length), who:`"${p.n}" (member report)`, when:'Just now', source:'Member report: '+$('#r-why').value, sev:'med', rows:[['Report reason',$('#r-why').value,'—','p'],['Prior reports','—','0','y']], note:'Reported by a match. Reporter identity hidden from the reported member.', status:'open'});
-      renderQueue(); log(`report filed against ${p.n}; blocked`,'w');
-      chat=[]; deckIndex++; go('discover');
-    };
+    const s = $('#sheet'); s.innerHTML = '<div class="sheet">' + html + '</div>';
+    s.querySelectorAll('[data-close]').forEach(b => b.onclick = () => s.innerHTML = '');
+    const ds = s.querySelector('#d-save');
+    if (ds) ds.onclick = () => { const who = $('#d-who').value || 'your contact'; log('date plan shared with ' + who, 'ok'); s.innerHTML = '<div class="notice ok">Plan saved for ' + esc(who) + '. In the full app they\'d get the place and time, plus a check-in reminder.</div>'; };
+    const rs = s.querySelector('#r-send'), bo = s.querySelector('#b-only');
+    const finish = msg => { log(msg, 'w'); chatWarning = ''; deck = null; currentMatch = null; go('discover'); };
+    if (rs) rs.addEventListener('click', act(async () => {
+      const reason = $('#r-why').value, details = $('#r-details').value.trim();
+      if (mode === 'api') await api('/api/reports/' + currentMatch.uid, {method:'POST', body:{reason, details: details || undefined}});
+      else {
+        demoMatches = demoMatches.filter(m => m.id !== currentMatch.id);
+        cases.unshift({id:'C-' + (1044 + cases.length), who:currentMatch.name, legal:'—', when:'Just now', source:'Member report: ' + reason.replace('_', ' '), sev: ['unsafe','underage'].includes(reason) ? 'high' : 'med',
+          rows:[['Report reason', '—', reason.replace('_', ' '), 'p'], ['Details', '—', details || 'No details given', 'p']], note:'Reported by a match. Reporter identity is hidden.', status:'open'});
+        renderMod();
+      }
+      finish('reported and blocked ' + currentMatch.name);
+    }));
+    if (bo) bo.addEventListener('click', act(async () => {
+      if (mode === 'api') await api('/api/blocks/' + currentMatch.uid, {method:'POST'});
+      else demoMatches = demoMatches.filter(m => m.id !== currentMatch.id);
+      finish('blocked ' + currentMatch.name);
+    }));
   }
 
-  function runChecks(){
-    const plan = {
-      clear:   ['pass','pass','pass','pass','pass'],
-      registry:['pass','pass','hold','pass','pass'],
-      warrant: ['pass','pass','pass','hold','pass'],
-      mismatch:['pass','hold']
-    }[scenario];
+  // Cosmetic progress; the real decision already came from the API (or the demo scenario).
+  function animateChecks(holdAt, done){
     const rows = [...screen.querySelectorAll('.check')];
-    let i=0;
+    let i = 0;
     (function next(){
-      if(current!=='checking') return;
-      if(i>=plan.length || i>=rows.length){ finish(plan); return; }
-      const r=rows[i]; r.className='check run'; r.querySelector('.r').textContent='Checking';
-      setTimeout(()=>{
-        const res=plan[i]; r.className='check '+res; r.querySelector('.r').textContent = res==='pass'?'Clear':'Needs review';
-        log(`${r.textContent.replace(/Clear|Needs review/,'').trim()}: ${res==='pass'?'clear':'possible match → held'}`, res==='pass'?'ok':'w');
-        i++; if(res==='hold' && scenario==='mismatch'){ rows.slice(i).forEach(x=>x.querySelector('.r').textContent='Skipped'); finish(plan); return; }
-        next();
-      }, 650);
+      if (current !== 'checking') return;
+      if (i >= rows.length) return setTimeout(done, 400);
+      const r = rows[i]; r.className = 'check run'; r.querySelector('.r').textContent = 'Checking';
+      setTimeout(() => {
+        const hold = i === holdAt;
+        r.className = 'check ' + (hold ? 'hold' : 'pass'); r.querySelector('.r').textContent = hold ? 'Needs review' : 'Clear';
+        i++; next();
+      }, 550);
     })();
   }
 
-  function finish(plan){
-    setTimeout(()=>{
-      if(!plan.includes('hold')){ log('all checks clear → account live','ok'); appState='cleared'; go('profile'); return; }
-      if(scenario==='mismatch'){ log('liveness failed → retake requested (no case opened)','w'); go('review'); return; }
-      const name = user.name||'Taylor Morgan', dob = user.dob||'1996-05-29';
-      const c = scenario==='registry'
-        ? {id:'C-'+(1044+cases.length), who:`"${name.split(' ')[0]}" (your signup)`, when:'Just now', source:'Sex-offender registry (demo record)', sev:'high', mine:true,
-           rows:[['Legal name',name,name,'y'],['Date of birth',dob,dob,'y'],['Location','Kingstown','Out of region (demo)','p']], note:'Exact name + DOB match on a demo record. Confirm the record before acting.', status:'open'}
-        : {id:'C-'+(1044+cases.length), who:`"${name.split(' ')[0]}" (your signup)`, when:'Just now', source:'Public wanted notice (demo record)', sev:'med', mine:true,
-           rows:[['Legal name',name,name,'y'],['Date of birth',dob,'1979-02-14','n'],['Nationality','SVG','Other','n']], note:'Name only. DOB and nationality differ, likely a false match.', status:'open'};
-      cases.unshift(c); renderQueue();
-      log(`case ${c.id} opened; account hidden from discovery; no member notified`,'w');
-      appState='pending'; go('review');
-    }, 500);
+  function afterScreening(held){
+    if (!held) { log('all checks clear → account live', 'ok'); appState = 'cleared'; return go('profile'); }
+    if (mode === 'demo') {
+      const name = user.name || 'Taylor Morgan', dob = user.dob || '1996-05-29';
+      const c = scenario === 'registry'
+        ? {id:'C-' + (1044 + cases.length), who:name.split(' ')[0] + ' (your signup)', legal:name, when:'Just now', source:'Sex-offender registry (demo record)', sev:'high', mine:true,
+           rows:[['Legal name', name, name, 'y'], ['Date of birth', dob, dob, 'y'], ['Location', 'Kingstown', 'Out of region (demo)', 'p']], note:'Exact name + DOB match on a demo record. Confirm the record before acting.', status:'open'}
+        : {id:'C-' + (1044 + cases.length), who:name.split(' ')[0] + ' (your signup)', legal:name, when:'Just now', source:'Public wanted notice (demo record)', sev:'med', mine:true,
+           rows:[['Legal name', name, name, 'y'], ['Date of birth', dob, '1979-02-14', 'n'], ['Nationality', 'SVG', 'Other', 'n']], note:'Name only. DOB and nationality differ, likely a false match.', status:'open'};
+      cases.unshift(c); renderMod();
+      log('case ' + c.id + ' opened; account hidden; no member notified', 'w');
+    } else log('possible match → account hidden pending review; no member notified', 'w');
+    appState = 'pending'; reviewKind = 'pending'; go('review');
   }
 
-  renderQueue();
-  go('welcome');
+  // ---------- moderator view ----------
+  const SOURCE_LABEL = s => ({
+    'screening:sex_offender_registry':'Sex-offender registry (via screening provider)',
+    'screening:public_wanted_notice':'Public wanted notice list'
+  })[s] || (s.startsWith('report:') ? 'Member report: ' + s.slice(7).replace('_', ' ') : s);
+
+  function fromApi(c){
+    const comp = c.details && c.details.comparison;
+    return {
+      id:'C-' + c.id, rawId:c.id, who:c.display_name || c.legal_name, legal:c.legal_name + ' · born ' + c.date_of_birth,
+      when:new Date(c.created_at).toLocaleString(), source:SOURCE_LABEL(c.source), sev:c.severity === 'high' ? 'high' : 'med',
+      rows: comp ? comp.map(f => [f.field, f.verified, f.record, f.result === 'match' ? 'y' : f.result === 'no_match' ? 'n' : 'p'])
+                 : [['Report details', '—', (c.details && c.details.details) || 'No details given', 'p']],
+      note: c.source.startsWith('report:') ? 'Reported by a member. Reporter identity is hidden.'
+          : c.severity === 'high' ? 'Name and DOB match exactly. Confirm before acting.' : 'Name only. Other fields differ, likely a false match.',
+      status:c.status, decisionNote:c.decision_note
+    };
+  }
+
+  async function renderMod(){
+    const q = $('#queue');
+    if (mode === 'api' && !modToken) {
+      $('#qcount').textContent = '–';
+      q.innerHTML = '<form class="modlogin" id="mod-login"><b>Moderator sign in</b>' +
+        '<label for="m-email">Email</label><input id="m-email" type="email" value="mod@example.com" autocomplete="username">' +
+        '<label for="m-pass">Password</label><input id="m-pass" type="password" autocomplete="current-password">' +
+        '<p class="err" id="m-err"></p><button class="btn" type="submit">Sign in</button>' +
+        '<span class="hint">Seeded moderator: mod@example.com / velvet-demo-pass</span></form>';
+      $('#mod-login').addEventListener('submit', async e => {
+        e.preventDefault();
+        try {
+          const r = await api('/api/auth/login', {method:'POST', auth:null, body:{email:$('#m-email').value.trim(), password:$('#m-pass').value}});
+          if (r.user.role !== 'moderator') throw new Error('That account is not a moderator.');
+          modToken = r.token; session.set('velvet.modToken', modToken); log('moderator signed in', 'ok'); renderMod();
+        } catch (err) { $('#m-err').textContent = err.message; }
+      });
+      updateStats([]); return;
+    }
+    if (mode === 'api') {
+      try { cases = (await api('/api/mod/cases?status=all', {auth:modToken})).map(fromApi); }
+      catch (err) {
+        if (err.status === 401 || err.status === 403) { modToken = null; session.set('velvet.modToken', null); return renderMod(); }
+        q.innerHTML = '<div class="notice">' + esc(err.message) + '</div>'; return;
+      }
+    }
+    q.innerHTML = (mode === 'api' ? '<div class="row" style="justify-content:flex-end"><button class="mini" id="mod-refresh">Refresh</button><button class="mini" id="mod-out">Sign out</button></div>' : '') +
+      (cases.length ? '' : '<div class="notice ok">No cases. Everyone is clear.</div>') +
+      cases.map(c => {
+        const open = c.status === 'open' || c.status === 'recheck';
+        const rows = c.rows.map(r => '<tr><td>' + esc(r[0]) + '</td><td>' + esc(r[1]) + '</td><td>' + esc(r[2]) + '</td><td class="' + r[3] + '">' + (r[3] === 'y' ? 'Match' : r[3] === 'n' ? 'No match' : 'Check') + '</td></tr>').join('');
+        const verdict = c.status === 'suspended' ? 'Suspended. Matches were ended; past matches see only that the account is gone.'
+          : c.status === 'cleared' ? 'Cleared. Account is live; the person was told nothing was found.'
+          : c.status === 'recheck' ? 'Re-check requested. Account stays hidden.' : '';
+        return '<article class="case' + (c.sev === 'high' ? ' high' : '') + (open ? '' : ' done') + '">' +
+          '<div><span class="chip ' + (c.sev === 'high' ? 'bad' : 'warn') + '">' + (c.sev === 'high' ? 'High-confidence hit' : 'Possible hit') + '</span>' +
+          '<h3 style="margin-top:8px">' + esc(c.id) + ' · ' + esc(c.who) + '</h3><div class="meta">' + esc(c.legal || '') + '<br>' + esc(c.when) + '<br>Source: ' + esc(c.source) + '</div>' +
+          '<p class="meta" style="margin-top:8px">' + esc(c.note) + '</p></div>' +
+          '<div class="tablewrap"><table class="cmp"><thead><tr><th>Field</th><th>Verified ID</th><th>Record</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+          '<div class="btns">' + (open
+            ? (c.status === 'recheck' ? '<div class="verdict">' + verdict + '</div>' : '') +
+              '<label for="note-' + esc(c.id) + '">Decision note (required)</label><textarea id="note-' + esc(c.id) + '" rows="2" placeholder="e.g. DOB differs, different person"></textarea><p class="err"></p>' +
+              '<button class="btn" data-act="suspend" data-id="' + esc(c.id) + '">Confirm match &amp; suspend</button>' +
+              '<button class="btn okb" data-act="clear" data-id="' + esc(c.id) + '">Not the same person, clear</button>' +
+              (c.status === 'open' ? '<button class="btn ghost" data-act="recheck" data-id="' + esc(c.id) + '">Ask provider to re-check</button>' : '')
+            : '<div class="verdict">' + verdict + (c.decisionNote ? '<br><i>Note: ' + esc(c.decisionNote) + '</i>' : '') + '</div>') + '</div></article>';
+      }).join('');
+    const rf = $('#mod-refresh'); if (rf) rf.onclick = () => renderMod();
+    const mo = $('#mod-out'); if (mo) mo.onclick = () => { modToken = null; session.set('velvet.modToken', null); log('moderator signed out', 't'); renderMod(); };
+    updateStats(cases);
+  }
+
+  function updateStats(list){
+    const open = list.filter(c => c.status === 'open' || c.status === 'recheck').length;
+    if (!(mode === 'api' && !modToken)) $('#qcount').textContent = open;
+    $('#st-open').textContent = open;
+    $('#st-sus').textContent = list.filter(c => c.status === 'suspended').length;
+    $('#st-clr').textContent = list.filter(c => c.status === 'cleared').length;
+  }
+
+  $('#queue').addEventListener('click', async e => {
+    const b = e.target.closest('button[data-act]'); if (!b) return;
+    const c = cases.find(x => x.id === b.dataset.id);
+    const art = b.closest('.case');
+    const note = art.querySelector('textarea').value.trim();
+    const err = art.querySelector('.err');
+    if (note.length < 3) { err.textContent = 'Add a short note explaining the decision.'; return; }
+    const decision = b.dataset.act;
+    const status = {suspend:'suspended', clear:'cleared', recheck:'recheck'}[decision];
+    if (mode === 'api') {
+      b.disabled = true;
+      try { await api('/api/mod/cases/' + c.rawId + '/decision', {method:'POST', auth:modToken, body:{decision, note}}); }
+      catch (x) { err.textContent = x.message; b.disabled = false; return; }
+    } else {
+      c.status = status; c.decisionNote = note;
+      if (c.mine) appState = status;
+    }
+    log('moderator: ' + c.id + ' → ' + status, status === 'suspended' ? 'b' : status === 'cleared' ? 'ok' : 'w');
+    renderMod();
+    if (mode === 'demo' && c.mine && current === 'review') go('review');
+  });
+
+  // ---------- start ----------
+  (async function start(){
+    const keepToken = session.get('velvet.token'), keepMod = session.get('velvet.modToken'), keepMe = session.get('velvet.meId');
+    setMode('demo');
+    go('welcome');
+    const saved = local.get('velvet.apiBase');
+    const candidates = saved ? [saved] : (location.protocol.indexOf('http') === 0 ? [''] : []);
+    for (const base of candidates) {
+      if (await healthy(base)) {
+        setMode('api', base);
+        token = keepToken; modToken = keepMod; meId = keepMe;
+        if (token) session.set('velvet.token', token);
+        if (modToken) session.set('velvet.modToken', modToken);
+        if (meId) session.set('velvet.meId', meId);
+        log('connected to the Velvet API' + (base ? ' at ' + base : ''), 'ok');
+        renderMod();
+        if (token) { try { await routeByStatus(); } catch { signOut(false); go('welcome'); } }
+        else go('welcome');
+        return;
+      }
+    }
+  })();
 })();
 </script>
 </body>

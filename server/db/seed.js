@@ -34,7 +34,22 @@ const held = [
     };
 
     await addUser({ email: 'mod@example.com', name: 'Velvet Moderator', dob: '1990-01-01' }, 'moderator', 'active');
-    for (const m of members) await addUser(m, 'member', 'active');
+    const ids = {};
+    for (const m of members) ids[m.display] = await addUser(m, 'member', 'active');
+
+    // Amara and Kai already matched and chatting, so signing in as either shows a conversation.
+    const [a, b] = [ids.Amara, ids.Kai].sort();
+    await db.query('INSERT INTO likes (liker_id, liked_id) VALUES ($1,$2), ($2,$1)', [ids.Amara, ids.Kai]);
+    const { rows: [match] } = await db.query('INSERT INTO matches (user_a, user_b) VALUES ($1,$2) RETURNING id', [a, b]);
+    const chat = [
+      [ids.Kai, 'Saw you like sailing. Ever been out to the Tobago Cays?'],
+      [ids.Amara, 'Twice! Best water in the world. You cook, right? I might need proof.'],
+      [ids.Kai, 'Name the dish and the day 😄'],
+    ];
+    for (const [sender, body] of chat)
+      await db.query('INSERT INTO messages (match_id, sender_id, body) VALUES ($1,$2,$3)', [match.id, sender, body]);
+
+    // To see a new match form: like Simone from a new account, then sign in as Simone and like back.
     for (const h of held) {
       const id = await addUser(h, 'member', 'under_review');
       const comparison = compare({ legal_name: h.name, date_of_birth: h.dob }, h.record);
