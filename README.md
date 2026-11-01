@@ -36,14 +36,13 @@ Velvet is a full-stack dating app where every member is ID-verified and screened
 
 ## Run it
 
-**Full app (live mode)** needs Node.js 20+ and PostgreSQL or Docker:
+**Full app (live mode)** needs Node.js 20+ and a free [Neon](https://neon.tech) Postgres database:
 
 ```bash
 git clone https://github.com/Jody2905/velvet-dating-app.git
 cd velvet-dating-app/server
 npm install
-cp .env.example .env        # set JWT_SECRET
-docker compose up -d        # PostgreSQL
+cp .env.example .env        # paste your Neon connection string, set JWT_SECRET
 npm run db:reset && npm run db:seed
 npm run dev                 # open http://localhost:3000
 ```
@@ -82,7 +81,7 @@ server/
 
 ## Tech
 
-Front end: HTML, CSS, vanilla JavaScript. Back end: Node.js, Express 5, PostgreSQL, Zod, bcrypt, JWT, Helmet. Tests: node:test + Supertest. CI: GitHub Actions.
+Front end: HTML, CSS, vanilla JavaScript. Back end: Node.js, Express 5, PostgreSQL on Neon, Zod, bcrypt, JWT, Helmet. Tests: node:test + Supertest. CI: GitHub Actions.
 
 All data in this project is fictional.
 

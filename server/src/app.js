@@ -15,6 +15,8 @@ function loadFrontend() {
 function createApp() {
   const app = express();
   app.disable('x-powered-by');
+  // On Render (or behind any one proxy), trust its X-Forwarded-For so rate limits apply per visitor.
+  if (process.env.RENDER || process.env.TRUST_PROXY) app.set('trust proxy', 1);
   app.use(helmet());
   app.use(cors({ origin: (process.env.CORS_ORIGIN || 'http://localhost:5500').split(',') }));
   app.use(express.json({ limit: '20kb' }));
