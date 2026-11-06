@@ -22,10 +22,12 @@ Velvet is a full-stack dating app where every member is ID-verified and screened
 - Actions: confirm and suspend, clear as a false match, or request a re-check
 - Member reports feed into the same queue
 
-**Two ways to run**
-- **Live mode:** served by the API at `http://localhost:3000`. Signups, likes, matches, chat, reports and moderator decisions are saved in PostgreSQL. The page detects the server automatically.
-- **Demo mode:** open `index.html` directly or on GitHub Pages. Everything runs in the page with fictional data, so anyone can click through without a server.
-- Demo controls switch the screening result between *All clear*, *Registry match*, *Watchlist match* and *Selfie mismatch*, and an activity log shows each step.
+**Try it**
+- Live site: **https://jody2905.github.io/velvet-dating-app/** (the first visit can take up to a minute while the free server wakes up).
+- Sign in as a sample member: `amara@example.com` or `kai@example.com`, password `velvet-demo-pass`, to see a match and a chat. Or create your own account (any photo works for the ID and selfie steps; the verification provider is a test service).
+- Moderators use **Staff sign-in** in the footer.
+- To see what happens when screening finds something, add `?scenario=registry` (or `warrant`, `mismatch`) to the address before signing up.
+- Add `?demo` to the address, or open `index.html` from your computer, to run everything in the page with sample data and no server.
 
 ## Design principles
 
@@ -49,7 +51,16 @@ npm run dev                 # open http://localhost:3000
 
 Sign in as `amara@example.com` or `kai@example.com` (password `velvet-demo-pass`) to see an existing match and chat, or create a new account. The moderator account is `mod@example.com` with the same password. To watch a new match form, like Simone from a new account, then sign in as `simone@example.com` in a private window and like back.
 
-**Demo mode only:** open `index.html` in a browser, or see it on [GitHub Pages](https://jody2905.github.io/velvet-dating-app/).
+**Demo mode only:** open `index.html` in a browser.
+
+## Deploy the full stack for free (Render + Neon)
+
+1. **Database:** in [Neon](https://neon.tech), open your `velvet` project → **Connect**, and copy the **pooled** connection string (the host contains `-pooler`).
+2. **API:** on [Render](https://render.com), choose **New → Blueprint** and pick this repo. `render.yaml` sets up a free web service called `velvet-api`. When asked, paste the Neon string as `DATABASE_URL` and choose a private `MOD_PASSWORD` for the moderator account.
+3. The first start creates the tables and the demo members automatically (`server/db/setup.js`, which never drops data). Check `https://velvet-api.onrender.com/api/health` shows `{"ok":true}`.
+4. **Front end:** GitHub Pages (Settings → Pages → Deploy from branch `main`, `/ (root)`) serves `index.html`, which connects to the live API by itself. If Render gave your service a different URL, change `HOSTED_API` near the top of the script in `index.html`.
+
+Free Render services sleep after 15 minutes without visitors and take about a minute to wake, so the first visit shows demo data until the server answers. On the live site, members use the demo password above; the moderator uses your `MOD_PASSWORD`.
 
 ## Backend API
 
@@ -77,7 +88,7 @@ server/
 - [ ] ID-verification provider (e.g. Persona, Onfido, Veriff) in sandbox mode
 - [ ] Licensed background-check provider with rules per country
 - [ ] Real-time chat (WebSockets) and video
-- [ ] Deploy API and database (Render or Railway)
+- [x] Deploy API and database (Render + Neon) with GitHub Pages connected to it
 
 ## Tech
 

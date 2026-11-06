@@ -1,0 +1,26 @@
+# Render Blueprint: one free web service that runs the Velvet API and serves the full app.
+# Render → New → Blueprint → pick this repo. Paste your Neon connection string when asked.
+services:
+  - type: web
+    name: velvet-api
+    runtime: node
+    plan: free
+    rootDir: server
+    buildCommand: npm ci
+    startCommand: npm run start:render   # creates tables + demo members on the first start only
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: DATABASE_URL
+        sync: false                      # Neon pooled connection string (host contains -pooler)
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ORIGIN
+        value: https://jody2905.github.io
+      # Password for mod@example.com on the live site, so visitors can't use the public demo one.
+      - key: MOD_PASSWORD
+        sync: false
+      # Screening is a mock provider in this project, so keep the demo scenarios on.
+      - key: DEMO_MODE
+        value: "true"

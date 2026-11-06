@@ -10,7 +10,9 @@
     "db:reset": "node db/reset.js",
     "db:seed": "node db/seed.js",
     "test": "node --test --test-concurrency=1 test/api.test.js",
-    "neon:env": "neon env pull"
+    "neon:env": "neon env pull",
+    "db:setup": "node db/setup.js",
+    "start:render": "node db/setup.js && node src/index.js"
   },
   "license": "MIT",
   "dependencies": {

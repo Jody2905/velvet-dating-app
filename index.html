@@ -36,19 +36,50 @@ h1,h2,h3{text-wrap:balance;margin:0}
 .top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 24px;border-bottom:1px solid var(--line);flex-wrap:wrap}
 .brand{font-family:var(--display);font-size:30px;font-style:italic;letter-spacing:.5px}
 .brand b{color:var(--accent);font-style:normal}
+.tabs[hidden]{display:none}
 .tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px}
 .tabs button{border:0;background:transparent;padding:8px 16px;border-radius:999px;cursor:pointer;color:var(--muted)}
 .tabs button[aria-selected="true"]{background:var(--accent);color:#fff}
 .badge-count{display:inline-block;min-width:20px;padding:0 6px;margin-left:6px;border-radius:999px;background:var(--warn);color:#2a1300;font-size:12px;font-weight:700}
 main{max-width:1180px;margin:0 auto;padding:24px 16px 48px}
 .view{display:none}.view.on{display:block}
-.app-layout{display:grid;grid-template-columns:390px 1fr;gap:32px;align-items:start}
-@media (max-width:900px){.app-layout{grid-template-columns:1fr}.phone{margin:0 auto}}
+.app-layout{display:grid;grid-template-columns:1fr 440px;gap:56px;align-items:center;min-height:calc(100vh - 150px)}
+@media (max-width:900px){.app-layout{grid-template-columns:1fr;gap:24px;min-height:0}}
+body.in-app .app-layout{grid-template-columns:1fr;justify-items:center;min-height:0}
+body.in-app .marketing,body.in-app .info{display:none}
 
 /* phone */
-.phone{width:100%;max-width:390px;height:760px;background:var(--surface);border:1px solid var(--line);border-radius:36px;padding:14px;box-shadow:0 30px 80px -30px #000,0 0 0 6px #0d0609;position:relative}
-.screen{height:100%;border-radius:26px;background:linear-gradient(180deg,#1d0d15,#140810);overflow-y:auto;padding:22px 20px;display:flex;flex-direction:column;gap:14px}
-.notch{position:absolute;top:20px;left:50%;transform:translateX(-50%);width:96px;height:6px;border-radius:9px;background:#0d0609}
+.app-card{width:100%;max-width:440px;height:min(720px,calc(100vh - 120px));min-height:560px;background:var(--surface);border:1px solid var(--line);border-radius:28px;box-shadow:0 30px 80px -30px #000;overflow:hidden}
+@media (max-width:900px){.app-card{margin:0 auto;height:calc(100vh - 110px)}}
+.screen{height:100%;border-radius:0;background:linear-gradient(180deg,#1d0d15,#140810);overflow-y:auto;padding:22px 20px;display:flex;flex-direction:column;gap:14px}
+.marketing h1{font-family:var(--display);font-size:clamp(40px,6vw,68px);line-height:1.02;font-weight:500}
+.marketing h1 em{color:var(--accent)}
+.eyebrow{text-transform:uppercase;letter-spacing:.14em;font-size:12px;color:var(--gold);font-weight:700;margin-bottom:14px}
+.lede{font-size:18px;color:var(--muted);max-width:46ch;margin:18px 0 24px}
+.trust{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:520px;padding:0}
+.trust li{display:flex;gap:10px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;font-size:14px}
+@media (max-width:900px){.marketing{text-align:center}.lede{margin-left:auto;margin-right:auto}.trust{margin:0 auto}}
+@media (max-width:520px){.trust{grid-template-columns:1fr}}
+.info{margin-top:72px}
+.info h2{font-family:var(--display);font-size:38px;margin-bottom:8px}
+.info>p{color:var(--muted);max-width:62ch;margin-bottom:20px}
+.promises{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0 22px}
+@media (max-width:760px){.promises{grid-template-columns:1fr}}
+.promises .rule{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px}
+.tools{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media (max-width:760px){.tools{grid-template-columns:1fr}}
+.tools div{background:var(--surface-2);border-radius:16px;padding:16px;color:var(--muted);font-size:14px}
+.tools b{display:block;color:var(--ink);font-size:15px;margin-bottom:4px}
+.site-nav{display:flex;gap:22px;margin-left:auto}
+.site-nav a,.foot a{color:var(--muted);text-decoration:none}
+.site-nav a:hover,.foot a:hover{color:var(--ink)}
+a.brand{color:var(--ink);text-decoration:none}
+.brand.small{font-size:22px}
+body.in-app .site-nav,body.staff .site-nav{display:none}
+.foot{max-width:1180px;margin:40px auto 0;padding:28px 16px 40px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:14px 28px;align-items:center;justify-content:space-between;color:var(--muted);font-size:13px}
+.foot nav{display:flex;gap:18px}
+.foot p{width:100%;margin:0}
+@media (max-width:900px){body.in-app .foot{display:none}body.in-app main{padding-top:12px}}
 .s-title{font-family:var(--display);font-size:32px;line-height:1.1}
 .s-title em{color:var(--accent)}
 .s-sub{color:var(--muted);font-size:14px}
@@ -163,9 +194,6 @@ table.cmp th{color:var(--muted);font-weight:500}
 .av{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-family:var(--display);font-size:22px;flex:none}
 .topline{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .mini{background:none;border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:12px;cursor:pointer;color:var(--ink)}
-.mode-pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;border-radius:999px;padding:3px 10px;background:var(--surface-2);border:1px solid var(--line)}
-.mode-pill i{width:8px;height:8px;border-radius:50%;background:var(--gold)}
-.mode-pill.live i{background:var(--ok)}
 .conn{display:flex;gap:8px;flex-wrap:wrap}
 .conn input{flex:1;min-width:180px;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
 .conn .btn{width:auto}
@@ -175,70 +203,59 @@ table.cmp th{color:var(--muted);font-weight:500}
 </head>
 <body>
 <header class="top">
-  <div class="row" style="gap:14px"><div class="brand"><b>V</b>elvet</div><span class="mode-pill" id="mode-pill"><i></i><span>Demo data</span></span></div>
-  <nav class="tabs" role="tablist" aria-label="Views">
+  <a class="brand" href="./" aria-label="Velvet home"><b>V</b>elvet</a>
+  <nav class="site-nav" aria-label="Main">
+    <a href="#how">How it works</a>
+    <a href="#safety">Safety</a>
+  </nav>
+  <nav class="tabs" id="staff-tabs" role="tablist" aria-label="Staff views" hidden>
     <button role="tab" id="tab-app" aria-selected="true" data-view="app">Member app</button>
-    <button role="tab" id="tab-mod" aria-selected="false" data-view="mod">Moderator queue<span class="badge-count" id="qcount">2</span></button>
+    <button role="tab" id="tab-mod" aria-selected="false" data-view="mod">Moderator queue<span class="badge-count" id="qcount">–</span></button>
   </nav>
 </header>
 
 <main>
 <section class="view on" id="view-app" aria-labelledby="tab-app">
   <div class="app-layout">
-    <div class="phone"><div class="notch"></div><div class="screen" id="screen" aria-live="polite"></div></div>
-
-    <div class="side">
-      <div class="panel">
-        <h2>Backend</h2>
-        <p id="conn-text"></p>
-        <form class="conn" id="conn-form">
-          <label for="conn-url" style="position:absolute;left:-9999px">API address</label>
-          <input id="conn-url" placeholder="API address, e.g. http://localhost:3000">
-          <button class="btn" type="submit">Connect</button>
-        </form>
-        <p class="err" id="conn-err"></p>
-        <button class="linkish" id="conn-demo" type="button">Use demo data instead</button>
-      </div>
-
-      <div class="panel">
-        <h2>Demo scenario</h2>
-        <p>Pick what the checks return for the next person who signs up. With the live API this needs <code>DEMO_MODE=true</code> on the server. All data is fictional.</p>
-        <div class="scen" id="scen">
-          <button data-s="clear" aria-pressed="true"><b>All clear</b><span>No records found. Account goes live.</span></button>
-          <button data-s="registry"><b>Registry match</b><span>Name + DOB match a sex-offender registry entry.</span></button>
-          <button data-s="warrant"><b>Watchlist match</b><span>Name matches a public wanted notice; DOB differs.</span></button>
-          <button data-s="mismatch"><b>Selfie mismatch</b><span>Selfie doesn't match the ID photo.</span></button>
-        </div>
-      </div>
-
-      <div class="panel">
-        <h2>Safety pipeline</h2>
-        <p>Checks run on a verified identity (legal name + date of birth from the ID), never on looks alone.</p>
-        <div class="pipe">
-          <div><b>Verify ID</b>Government ID scanned and validated.</div>
-          <div><b>Liveness</b>Live selfie matched to the ID photo.</div>
-          <div><b>Screen</b>Registries, records and watchlists, with consent.</div>
-          <div><b>Human review</b>Any hit is held for a trained moderator.</div>
-        </div>
-      </div>
-
-      <div class="panel">
-        <h2>Activity log</h2>
-        <p>What happened in this session.</p>
-        <div class="log" id="log"><div class="t">Waiting for signup…</div></div>
-      </div>
-
-      <div class="panel">
-        <h2>Ground rules</h2>
-        <div class="checks">
-          <div class="rule"><b>1</b><span>A possible match never goes straight to other members. Nobody gets a "your match is a criminal" alert.</span></div>
-          <div class="rule"><b>2</b><span>Flagged accounts are hidden from discovery while a moderator reviews them.</span></div>
-          <div class="rule"><b>3</b><span>Confirmed matches are removed. False matches are cleared and the person is told nothing was found.</span></div>
-          <div class="rule"><b>4</b><span>ID images are deleted after verification; only the result and a reference ID are kept.</span></div>
-        </div>
-      </div>
+    <div class="marketing">
+      <p class="eyebrow">Dating in St. Vincent &amp; the Grenadines</p>
+      <h1>Where sparks are <em>safe</em> to fly.</h1>
+      <p class="lede">Every member on Velvet is ID-verified and safety-screened before they can see or message anyone. Real people, real names, no catfish.</p>
+      <ul class="trust">
+        <li><span aria-hidden="true">🪪</span>Verified government ID</li>
+        <li><span aria-hidden="true">🤳</span>Live selfie check</li>
+        <li><span aria-hidden="true">🛡️</span>Safety screening, with your consent</li>
+        <li><span aria-hidden="true">👀</span>Real people review every flag</li>
+      </ul>
     </div>
+    <div class="app-card"><div class="screen" id="screen" aria-live="polite"></div></div>
   </div>
+
+  <section class="info" id="how" aria-labelledby="how-h">
+    <h2 id="how-h">How it works</h2>
+    <p>Joining takes about five minutes. Your legal name and date of birth stay private: other members only see your first name and age.</p>
+    <div class="pipe">
+      <div><b>Verify your ID</b>Scan a passport, driver’s licence or national ID.</div>
+      <div><b>Take a live selfie</b>We match it to your ID photo, then delete both images.</div>
+      <div><b>Safety screening</b>Registries, records and watchlists, only with your consent.</div>
+      <div><b>Start matching</b>See and message other verified members.</div>
+    </div>
+  </section>
+
+  <section class="info" id="safety" aria-labelledby="safety-h">
+    <h2 id="safety-h">Our safety promises</h2>
+    <div class="promises">
+      <div class="rule"><b>1</b><span>We match on verified identity, never on looks. A similar face or a shared name is never enough to flag someone.</span></div>
+      <div class="rule"><b>2</b><span>If a check finds something, a trained person reviews it. Nobody gets a “your match is a criminal” alert.</span></div>
+      <div class="rule"><b>3</b><span>Flagged accounts are hidden while they're reviewed. False matches are cleared quietly, and anyone can dispute a decision.</span></div>
+      <div class="rule"><b>4</b><span>ID images are deleted after verification. We keep only the result.</span></div>
+    </div>
+    <div class="tools">
+      <div><b>📹 Video call first</b>Meet face to face on a call before you meet in person.</div>
+      <div><b>📍 Share my date</b>Send a trusted friend who you're meeting, where and when.</div>
+      <div><b>🚩 Report &amp; block</b>One tap, any time. Reports go straight to our safety team.</div>
+    </div>
+  </section>
 </section>
 
 <section class="view" id="view-mod" aria-labelledby="tab-mod">
@@ -257,6 +274,13 @@ table.cmp th{color:var(--muted);font-weight:500}
 </section>
 </main>
 
+<footer class="foot">
+  <div><a class="brand small" href="./"><b>V</b>elvet</a></div>
+  <nav aria-label="Footer"><a href="#how">How it works</a><a href="#safety">Safety</a><a href="#moderator" id="staff-link">Staff sign-in</a></nav>
+  <p>© 2026 Velvet · A portfolio project by Jody-Ann Trimmingham. Not a real dating service.</p>
+</footer>
+<div id="log" hidden></div>
+
 <script>
 (function(){
   'use strict';
@@ -274,6 +298,9 @@ table.cmp th{color:var(--muted);font-weight:500}
   // ---------- state ----------
   let mode = 'demo';            // 'demo' (in-page data) or 'api' (real backend)
   let apiBase = '';
+  // The deployed API (Render). The GitHub Pages copy of this page connects to it automatically.
+  // Change this if your Render service gets a different URL.
+  const HOSTED_API = 'https://velvet-api.onrender.com';
   let token = session.get('velvet.token');
   let modToken = session.get('velvet.modToken');
   let meId = session.get('velvet.meId');
@@ -318,12 +345,15 @@ table.cmp th{color:var(--muted);font-weight:500}
     return data;
   }
   async function healthy(base) {
-    try { const r = await fetch(base + '/api/health'); return r.ok && (await r.json()).ok === true; } catch { return false; }
+    try {
+      const r = await fetch(base + '/api/health', { signal: AbortSignal.timeout ? AbortSignal.timeout(75000) : undefined });
+      return r.ok && (await r.json()).ok === true;
+    } catch { return false; }
   }
 
   // ---------- log ----------
   function log(msg, cls){
-    if (logEl.firstChild && logEl.firstChild.textContent.startsWith('Waiting')) logEl.innerHTML = '';
+    if (!logEl) return;
     const d = document.createElement('div');
     d.innerHTML = '<span class="t">' + new Date().toTimeString().slice(0,8) + '</span> <span class="' + (cls || '') + '">' + esc(msg) + '</span>';
     logEl.appendChild(d); logEl.scrollTop = logEl.scrollHeight;
@@ -332,46 +362,33 @@ table.cmp th{color:var(--muted);font-weight:500}
   // ---------- mode / connection ----------
   function setMode(m, base){
     mode = m; apiBase = base || '';
-    const pill = $('#mode-pill');
-    pill.classList.toggle('live', m === 'api');
-    pill.querySelector('span').textContent = m === 'api' ? 'Live API' : 'Demo data';
-    $('#conn-text').textContent = m === 'api'
-      ? 'Connected to the Velvet API' + (apiBase ? ' at ' + apiBase : '') + '. Signups, matches, messages and moderator decisions are saved in the database.'
-      : 'Demo mode: everything runs in this page with fictional data and resets on reload. To use the real database, run the server (see server/README.md) and open http://localhost:3000, or enter its address here.';
-    $('#conn-demo').hidden = m !== 'api';
-    $('#mod-sub').textContent = m === 'api'
-      ? 'Live cases from screening and member reports. Compare the record against the verified identity before deciding.'
-      : 'Fictional example cases. Compare the record against the verified identity before deciding.';
+    $('#mod-sub').textContent = 'Accounts held by screening or member reports. Compare the record against the verified identity before deciding.';
     if (m === 'demo') { token = modToken = meId = null; ['velvet.token','velvet.modToken','velvet.meId'].forEach(k => session.set(k, null)); cases = demoCases(); }
     deck = null; currentMatch = null;
     renderMod();
   }
 
-  $('#conn-form').addEventListener('submit', async e => {
-    e.preventDefault();
-    const base = $('#conn-url').value.trim().replace(/\/+$/, '');
-    $('#conn-err').textContent = '';
-    if (!/^https?:\/\//.test(base)) { $('#conn-err').textContent = 'Enter a full address starting with http:// or https://'; return; }
-    if (!(await healthy(base))) { $('#conn-err').textContent = "Couldn't reach the API at that address. Check the server is running and CORS_ORIGIN includes this page."; return; }
-    local.set('velvet.apiBase', base); setMode('api', base); log('connected to ' + base, 'ok'); go('welcome');
-  });
-  $('#conn-demo').addEventListener('click', () => { local.set('velvet.apiBase', null); setMode('demo'); log('switched to demo data', 't'); go('welcome'); });
-
-  // ---------- scenario ----------
-  $('#scen').addEventListener('click', e => {
-    const b = e.target.closest('button'); if (!b) return;
-    scenario = b.dataset.s;
-    document.querySelectorAll('#scen button').forEach(x => x.setAttribute('aria-pressed', x === b));
-    log('scenario set: ' + scenario, 't');
-  });
-  function resetScenario(){ scenario = 'clear'; document.querySelectorAll('#scen button').forEach(x => x.setAttribute('aria-pressed', x.dataset.s === 'clear')); }
+  // ---------- screening scenario ----------
+  // The screening provider is a test service. Testers can add ?scenario=registry, warrant or mismatch to the URL.
+  const urlScenario = new URLSearchParams(location.search).get('scenario');
+  if (['registry','warrant','mismatch'].includes(urlScenario)) scenario = urlScenario;
+  function resetScenario(){ scenario = 'clear'; }
 
   // ---------- tabs ----------
   document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => {
     document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-selected', x === b));
     document.querySelectorAll('.view').forEach(v => v.classList.toggle('on', v.id === 'view-' + b.dataset.view));
     if (b.dataset.view === 'mod') renderMod();
+    if (b.dataset.view === 'app' && location.hash === '#moderator') history.replaceState(null, '', location.pathname + location.search);
   }));
+  // Staff (moderators) reach the review queue from the footer's "Staff sign-in" link.
+  function syncStaff(){
+    const staff = location.hash === '#moderator';
+    document.body.classList.toggle('staff', staff || !!modToken);
+    $('#staff-tabs').hidden = !(staff || modToken);
+    if (staff) $('#tab-mod').click();
+  }
+  window.addEventListener('hashchange', syncStaff);
 
   // ---------- helpers ----------
   const age = d => { if (!d) return 0; const b = new Date(d + 'T00:00:00'), n = new Date(); let a = n.getFullYear() - b.getFullYear(); if (n < new Date(n.getFullYear(), b.getMonth(), b.getDate())) a--; return a; };
@@ -407,7 +424,7 @@ table.cmp th{color:var(--muted);font-weight:500}
   async function routeByStatus(){
     const me = await api('/api/auth/me');
     meId = me.id; session.set('velvet.meId', meId);
-    if (me.role === 'moderator') { signOut(false); throw new Error('That is a moderator account. Use the Moderator queue tab.'); }
+    if (me.role === 'moderator') { signOut(false); throw new Error('That is a staff account. Use “Staff sign-in” at the bottom of the page.'); }
     if (me.status === 'pending') return go(me.id_document === 'passed' && me.selfie_liveness === 'passed' ? 'consent' : 'verify');
     if (me.status === 'under_review') { reviewKind = 'pending'; return go('review'); }
     return go(me.display_name ? 'discover' : 'profile');
@@ -416,18 +433,17 @@ table.cmp th{color:var(--muted);font-weight:500}
   // ---------- screens ----------
   const S = {
     welcome(){ reviewKind = null; return '<div class="spacer"></div>' +
-      '<div class="s-title">Where sparks are <em>safe</em> to fly.</div>' +
-      '<p class="s-sub">Every member on Velvet is ID-verified and safety-screened before they can see or message anyone.</p>' +
-      '<div class="tags"><span>Verified IDs</span><span>Live selfies</span><span>Human review</span></div><div class="spacer"></div>' + errP +
+      '<div class="s-title">Meet someone <em>real</em>.</div>' +
+      '<p class="s-sub">Join free. It takes about five minutes, and you\'re only shown to other verified members.</p>' +
+      '<div class="tags"><span>Free to join</span><span>18+ only</span><span>Verified members only</span></div><div class="spacer"></div>' + errP +
       '<button class="btn" data-go="account">Create account</button>' +
-      (mode === 'api' ? '<button class="btn ghost" data-go="signin">Sign in</button>' : '<button class="btn ghost" data-go="discover">Skip to matching (demo)</button>'); },
+      (mode === 'api' ? '<button class="btn ghost" data-go="signin">Sign in</button>' : '<button class="btn ghost" data-go="discover">Look around</button>'); },
 
     signin(){ return '<div class="s-title">Welcome <em>back</em></div>' +
       '<form id="signin-form" class="checks">' +
       '<div class="field"><label for="si-email">Email</label><input id="si-email" type="email" autocomplete="username" required></div>' +
       '<div class="field"><label for="si-pass">Password</label><input id="si-pass" type="password" autocomplete="current-password" required></div>' +
       errP + '<button class="btn" type="submit">Sign in</button></form>' +
-      '<div class="hint">Seeded demo members: amara@example.com, kai@example.com, simone@example.com, devon@example.com. Password: velvet-demo-pass</div>' +
       '<div class="spacer"></div><button class="btn ghost" data-go="welcome">Back</button>'; },
 
     account(){ return steps(1) + '<div class="s-title">About you</div>' +
@@ -436,7 +452,7 @@ table.cmp th{color:var(--muted);font-weight:500}
       '<div class="field"><label for="f-dob">Date of birth</label><input id="f-dob" type="date" value="' + esc(user.dob) + '"></div>' +
       '<div class="field"><label for="f-email">Email</label><input id="f-email" type="email" value="' + esc(user.email) + '" placeholder="you@example.com" autocomplete="email"></div>' +
       (mode === 'api' ? '<div class="field"><label for="f-pass">Password (10+ characters)</label><input id="f-pass" type="password" value="' + esc(user.password) + '" autocomplete="new-password"></div>' : '') +
-      '<button class="linkish" id="fill">Fill with sample details</button>' + errP +
+      (mode === 'demo' ? '<button class="linkish" id="fill">Fill with sample details</button>' : '') + errP +
       '<div class="spacer"></div><button class="btn" id="acct-next">Continue</button>'; },
 
     verify(){ return steps(2) + '<div class="s-title">Verify it\'s <em>you</em></div>' +
@@ -445,7 +461,7 @@ table.cmp th{color:var(--muted);font-weight:500}
       '<label class="linkish" for="up-id" style="margin:0">' + (user.id ? 'Replace' : 'Upload') + '</label><input id="up-id" type="file" accept="image/*" hidden></div>' +
       '<div class="upload ' + (user.selfie ? 'ok' : '') + '"><div class="ic">🤳</div><div class="t">Live selfie<small>' + (user.selfie ? 'Captured ✓' : 'Turn your head slowly when prompted') + '</small></div>' +
       '<label class="linkish" for="up-selfie" style="margin:0">' + (user.selfie ? 'Replace' : 'Upload') + '</label><input id="up-selfie" type="file" accept="image/*" hidden></div>' +
-      '<button class="linkish" id="sample-up">Use sample images (demo)</button>' + errP +
+      (mode === 'demo' ? '<button class="linkish" id="sample-up">Use sample images</button>' : '') + errP +
       '<div class="spacer"></div><button class="btn" id="verify-next" ' + (user.id && user.selfie ? '' : 'disabled') + '>Continue</button>'; },
 
     consent(){ return steps(3) + '<div class="s-title">Safety screening</div>' +
@@ -464,9 +480,8 @@ table.cmp th{color:var(--muted);font-weight:500}
       if (reviewKind === 'suspended' || (mode === 'demo' && appState === 'suspended')) return '<div class="spacer"></div><div class="s-title">Account not approved</div><div class="notice" style="border-left-color:var(--bad)">We can\'t approve this account under our safety rules. If you think this is wrong, you can request the record used and dispute it.</div><div class="spacer"></div><button class="btn ghost" data-go="welcome">Back to start</button>';
       return '<div class="spacer"></div><div class="s-title">Almost <em>there</em></div>' +
         '<div class="notice">Your account needs a quick manual review before it goes live. This usually takes up to 24 hours. We\'ll email you.</div>' +
-        '<p class="s-sub">Demo: open the <b>Moderator queue</b> tab to decide this case' + (mode === 'api' ? ' (sign in as mod@example.com), then check your status here.' : '.') + '</p>' + errP +
-        '<div class="spacer"></div>' + (mode === 'api' ? '<button class="btn" id="check-status">Check my status</button>' : '') +
-        '<button class="btn ghost" id="to-mod">Open moderator queue</button>' + (mode === 'api' ? '<button class="linkish" id="signout">Sign out</button>' : ''); },
+        '<p class="s-sub">Nothing is shared with other members while we look. You can come back and check your status any time.</p>' + errP +
+        '<div class="spacer"></div>' + (mode === 'api' ? '<button class="btn" id="check-status">Check my status</button><button class="linkish" id="signout">Sign out</button>' : ''); },
 
     profile(){ const first = (user.name || '').split(' ')[0];
       return '<div class="s-title">Your <em>profile</em></div><p class="s-sub">This is what other verified members see.</p>' +
@@ -536,6 +551,7 @@ table.cmp th{color:var(--muted);font-weight:500}
     }
     if (seq !== renderSeq) return;
     screen.innerHTML = html; screen.scrollTop = name === 'chat' ? screen.scrollHeight : 0; bind();
+    document.body.classList.toggle('in-app', !['welcome','signin','account','verify','consent','checking'].includes(name));
     if (name === 'chat' && mode === 'api') pollTimer = setInterval(refreshChat, 4000);
   }
 
@@ -598,7 +614,6 @@ table.cmp th{color:var(--muted);font-weight:500}
       log('status: ' + me.status, me.status === 'active' ? 'ok' : 'w');
       reviewKind = null; await routeByStatus();
     }));
-    on('to-mod', 'click', () => $('#tab-mod').click());
 
     on('profile-form', 'submit', act(async () => {
       const body = {displayName:$('#p-name').value.trim(), location:$('#p-loc').value.trim(), bio:$('#p-bio').value.trim(),
@@ -730,16 +745,15 @@ table.cmp th{color:var(--muted);font-weight:500}
     if (mode === 'api' && !modToken) {
       $('#qcount').textContent = '–';
       q.innerHTML = '<form class="modlogin" id="mod-login"><b>Moderator sign in</b>' +
-        '<label for="m-email">Email</label><input id="m-email" type="email" value="mod@example.com" autocomplete="username">' +
+        '<label for="m-email">Email</label><input id="m-email" type="email" autocomplete="username">' +
         '<label for="m-pass">Password</label><input id="m-pass" type="password" autocomplete="current-password">' +
-        '<p class="err" id="m-err"></p><button class="btn" type="submit">Sign in</button>' +
-        '<span class="hint">Seeded moderator: mod@example.com / velvet-demo-pass</span></form>';
+        '<p class="err" id="m-err"></p><button class="btn" type="submit">Sign in</button></form>';
       $('#mod-login').addEventListener('submit', async e => {
         e.preventDefault();
         try {
           const r = await api('/api/auth/login', {method:'POST', auth:null, body:{email:$('#m-email').value.trim(), password:$('#m-pass').value}});
           if (r.user.role !== 'moderator') throw new Error('That account is not a moderator.');
-          modToken = r.token; session.set('velvet.modToken', modToken); log('moderator signed in', 'ok'); renderMod();
+          modToken = r.token; session.set('velvet.modToken', modToken); log('moderator signed in', 'ok'); syncStaff(); renderMod();
         } catch (err) { $('#m-err').textContent = err.message; }
       });
       updateStats([]); return;
@@ -773,7 +787,7 @@ table.cmp th{color:var(--muted);font-weight:500}
             : '<div class="verdict">' + verdict + (c.decisionNote ? '<br><i>Note: ' + esc(c.decisionNote) + '</i>' : '') + '</div>') + '</div></article>';
       }).join('');
     const rf = $('#mod-refresh'); if (rf) rf.onclick = () => renderMod();
-    const mo = $('#mod-out'); if (mo) mo.onclick = () => { modToken = null; session.set('velvet.modToken', null); log('moderator signed out', 't'); renderMod(); };
+    const mo = $('#mod-out'); if (mo) mo.onclick = () => { modToken = null; session.set('velvet.modToken', null); log('moderator signed out', 't'); history.replaceState(null, '', location.pathname + location.search); syncStaff(); $('#tab-app').click(); renderMod(); };
     updateStats(cases);
   }
 
@@ -808,26 +822,30 @@ table.cmp th{color:var(--muted);font-weight:500}
   });
 
   // ---------- start ----------
+  // The page talks to the real API. Demo data (everything in the page, nothing saved) is only used
+  // when you open index.html straight from your computer, or add ?demo to the address.
   (async function start(){
-    const keepToken = session.get('velvet.token'), keepMod = session.get('velvet.modToken'), keepMe = session.get('velvet.meId');
-    setMode('demo');
+    const wantDemo = new URLSearchParams(location.search).has('demo') || location.protocol === 'file:';
+    if (wantDemo) { setMode('demo'); go('welcome'); syncStaff(); return; }
+    const onPages = /\.github\.io$/.test(location.hostname);
+    const base = onPages ? HOSTED_API : '';
+    setMode('api', base);
+    renderMod();
+    syncStaff();
+    // Show the welcome screen straight away; free Render servers can take up to a minute to wake.
     go('welcome');
-    const saved = local.get('velvet.apiBase');
-    const candidates = saved ? [saved] : (location.protocol.indexOf('http') === 0 ? [''] : []);
-    for (const base of candidates) {
-      if (await healthy(base)) {
-        setMode('api', base);
-        token = keepToken; modToken = keepMod; meId = keepMe;
-        if (token) session.set('velvet.token', token);
-        if (modToken) session.set('velvet.modToken', modToken);
-        if (meId) session.set('velvet.meId', meId);
-        log('connected to the Velvet API' + (base ? ' at ' + base : ''), 'ok');
-        renderMod();
-        if (token) { try { await routeByStatus(); } catch { signOut(false); go('welcome'); } }
-        else go('welcome');
-        return;
-      }
+    let up = await healthy(base);
+    if (!up) {
+      screen.innerHTML = '<div class="spacer"></div><div class="s-title">Just a <em>moment</em></div>' +
+        '<p class="s-sub">Velvet is waking up. This can take up to a minute.</p><div class="spacer"></div>' +
+        '<button class="btn" id="retry-conn">Try again</button>';
+      const retry = () => location.reload();
+      $('#retry-conn').addEventListener('click', retry);
+      up = await healthy(base);
+      if (!up) return;
     }
+    if (token) { try { await routeByStatus(); } catch { signOut(false); go('welcome'); } }
+    else go('welcome');
   })();
 })();
 </script>

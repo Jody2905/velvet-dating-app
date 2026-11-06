@@ -21,6 +21,10 @@ With the Neon CLI you can fill in the connection strings automatically: `neon en
 
 Demo logins (password `velvet-demo-pass`): `mod@example.com` (moderator), `amara@example.com`, `kai@example.com`, `simone@example.com`, `devon@example.com`.
 
+### Hosted deploy
+
+`npm run start:render` runs `db/setup.js` (creates the schema and demo data only if the database is empty) and then starts the API. See the main README for the Render + Neon steps. Set `MOD_PASSWORD` so the public demo password can't sign in as the moderator.
+
 ### Tests
 
 The tests **erase** the database they run on, so they only use `TEST_DATABASE_URL` and refuse to run against `DATABASE_URL`. Point it at a throwaway Neon branch:

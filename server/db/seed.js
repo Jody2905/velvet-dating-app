@@ -21,11 +21,13 @@ const held = [
 
 (async () => {
   const hash = await bcrypt.hash(PASSWORD, 12);
+  // On a public deploy, set MOD_PASSWORD so visitors can't sign in as the moderator.
+  const modHash = process.env.MOD_PASSWORD ? await bcrypt.hash(process.env.MOD_PASSWORD, 12) : hash;
   await tx(async db => {
-    const addUser = async (u, role, status) => {
+    const addUser = async (u, role, status, pwHash = hash) => {
       const { rows: [r] } = await db.query(
         `INSERT INTO users (email, password_hash, legal_name, date_of_birth, role, status) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id`,
-        [u.email, hash, u.name, u.dob, role, status]);
+        [u.email, pwHash, u.name, u.dob, role, status]);
       await db.query(`INSERT INTO verifications (user_id, id_document, selfie_liveness, provider, provider_ref, verified_at)
                       VALUES ($1,'passed','passed','mock','seed',now())`, [r.id]);
       if (u.display) await db.query('INSERT INTO profiles (user_id, display_name, location, bio, interests) VALUES ($1,$2,$3,$4,$5)',
@@ -33,7 +35,7 @@ const held = [
       return r.id;
     };
 
-    await addUser({ email: 'mod@example.com', name: 'Velvet Moderator', dob: '1990-01-01' }, 'moderator', 'active');
+    await addUser({ email: 'mod@example.com', name: 'Velvet Moderator', dob: '1990-01-01' }, 'moderator', 'active', modHash);
     const ids = {};
     for (const m of members) ids[m.display] = await addUser(m, 'member', 'active');
 
@@ -58,6 +60,6 @@ const held = [
     }
   });
   console.log(`Seeded. All demo accounts use the password "${PASSWORD}".`);
-  console.log('Moderator: mod@example.com   Members: amara@, kai@, simone@, devon@example.com');
+  console.log('Moderator: mod@example.com' + (process.env.MOD_PASSWORD ? ' (password from MOD_PASSWORD)' : '') + '   Members: amara@, kai@, simone@, devon@example.com');
   await pool.end();
 })().catch(async err => { console.error(err); await pool.end(); process.exit(1); });
