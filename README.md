@@ -23,7 +23,7 @@ Velvet is a full-stack dating app where every member is ID-verified and screened
 - Member reports feed into the same queue
 
 **Try it**
-- Live site: **https://jody2905.github.io/velvet-dating-app/** (the first visit can take up to a minute while the free server wakes up).
+- Live app: **https://velvet-dating-app-lon3.onrender.com** (also at https://jody2905.github.io/velvet-dating-app/). The first visit can take up to a minute while the free server wakes up.
 - Sign in as a sample member: `amara@example.com` or `kai@example.com`, password `velvet-demo-pass`, to see a match and a chat. Or create your own account (any photo works for the ID and selfie steps; the verification provider is a test service).
 - Moderators use **Staff sign-in** in the footer.
 - To see what happens when screening finds something, add `?scenario=registry` (or `warrant`, `mismatch`) to the address before signing up.
@@ -57,7 +57,7 @@ Sign in as `amara@example.com` or `kai@example.com` (password `velvet-demo-pass`
 
 1. **Database:** in [Neon](https://neon.tech), open your `velvet` project → **Connect**, and copy the **pooled** connection string (the host contains `-pooler`).
 2. **API:** on [Render](https://render.com), choose **New → Blueprint** and pick this repo. `render.yaml` sets up a free web service called `velvet-api`. When asked, paste the Neon string as `DATABASE_URL` and choose a private `MOD_PASSWORD` for the moderator account.
-3. The first start creates the tables and the demo members automatically (`server/db/setup.js`, which never drops data). Check `https://velvet-api.onrender.com/api/health` shows `{"ok":true}`.
+3. The first start creates the tables and the demo members automatically (`server/db/setup.js`, which never drops data). Check `https://velvet-dating-app-lon3.onrender.com/api/health` shows `{"ok":true}`.
 4. **Front end:** GitHub Pages (Settings → Pages → Deploy from branch `main`, `/ (root)`) serves `index.html`, which connects to the live API by itself. If Render gave your service a different URL, change `HOSTED_API` near the top of the script in `index.html`.
 
 Free Render services sleep after 15 minutes without visitors and take about a minute to wake, so the first visit shows demo data until the server answers. On the live site, members use the demo password above; the moderator uses your `MOD_PASSWORD`.
